@@ -1,0 +1,153 @@
+import { Config, Palette } from './Config.js';
+import { GameLoop } from './GameLoop.js';
+import { Player } from '../entities/Player.js';
+import { SpawnSystem } from '../systems/SpawnSystem.js';
+import { CombatSystem } from '../systems/CombatSystem.js';
+import { PhysicsSystem } from '../systems/PhysicsSystem.js';
+import { UpgradeSystem } from '../systems/UpgradeSystem.js';
+import { ScreenShake } from '../fx/ScreenShake.js';
+import { HitStop } from '../fx/HitStop.js';
+import { AmbientDust } from '../fx/AmbientDust.js';
+import { Background } from '../fx/Background.js';
+import { Particle } from '../entities/Particle.js';
+
+export class Game {
+  constructor({ renderer, input, hud, upgradeMenu, onGameOver, classId }) {
+    this.renderer = renderer;
+    this.input = input;
+    this.hud = hud;
+    this.upgradeMenu = upgradeMenu;
+    this.onGameOver = onGameOver;
+
+    this.background = new Background();
+    this.renderer.background = this.background;
+
+    this.player = new Player(0, 0, classId);
+    this.enemies = [];
+    this.bullets = [];
+    this.gems = [];
+    this.particles = [];
+    this.damageNumbers = [];
+    this.time = 0;
+    this.cam = { x: 0, y: 0 };
+    this.over = false;
+    this.flash = 0;
+    this._wasPlayerHpFull = true;
+
+    this.shake = new ScreenShake();
+    this.hitStop = new HitStop();
+    this.dust = new AmbientDust(100);
+
+    this.spawnSystem = new SpawnSystem(this);
+    this.combatSystem = new CombatSystem(this);
+    this.physicsSystem = new PhysicsSystem(this);
+    this.upgradeSystem = new UpgradeSystem(this);
+
+    this.loop = new GameLoop(dt => this.update(dt), () => this.render());
+  }
+
+  start() { this.loop.start(); }
+  pause() { this.loop.pause(); }
+  resume() { this.loop.resume(); }
+
+  update(dt) {
+    this.dust.update(dt);
+    this.renderer.tick(dt);
+    this.shake.update(dt);
+    this.flash = Math.max(0, this.flash - dt * 3);
+
+    if (this.hitStop.consume(dt)) {
+      this._updateDamageNumbers(dt);
+      this.hud.update(this.player, this.time);
+      return;
+    }
+
+    this.time += dt;
+
+    const dir = this.input.getDirection();
+    this.player.move(dir.x, dir.y, dt);
+    this.player.regenerate(dt);
+
+    const wasHp = this.player.hp;
+    const { width, height } = this.renderer.getSize();
+    this.cam.x = this.player.x - width / 2;
+    this.cam.y = this.player.y - height / 2;
+
+    this.spawnSystem.update(dt);
+    this.physicsSystem.update(dt);
+    this.combatSystem.update(dt);
+
+    if (this.player.hp < wasHp) {
+      this.shake.add(Config.fx.shakeOnPlayerHit);
+      this.flash = 0.35;
+    }
+
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.vx *= 0.92; p.vy *= 0.92;
+      p.life -= dt;
+      if (p.life <= 0) this.particles.splice(i, 1);
+    }
+
+    this._updateDamageNumbers(dt);
+    this.hud.update(this.player, this.time);
+
+    if (this.player.hp <= 0 && !this.over) {
+      this.over = true;
+      this.loop.pause();
+      this.onGameOver({ time: this.time, level: this.player.level, kills: this.player.kills });
+    }
+  }
+
+  _updateDamageNumbers(dt) {
+    for (let i = this.damageNumbers.length - 1; i >= 0; i--) {
+      const d = this.damageNumbers[i];
+      d.update(dt);
+      if (d.expired) this.damageNumbers.splice(i, 1);
+    }
+  }
+
+  render() {
+    const r = this.renderer;
+    const offset = this.shake.getOffset();
+    r.setShake(offset.x, offset.y);
+    r.beginFrame();
+
+    r.clear();
+    r.drawGrid(this.cam, Config.world.grid);
+
+    for (const p of this.particles) r.drawParticle(p, this.cam);
+    for (const g of this.gems) r.drawGem(g, this.cam);
+    for (const e of this.enemies) r.drawEnemy(e, this.cam);
+    for (const b of this.bullets) r.drawBullet(b, this.cam);
+    r.drawPlayer(this.player, this.cam);
+
+    r.drawLighting(this.cam, this.player);
+
+    for (const d of this.damageNumbers) r.drawDamageNumber(d, this.cam);
+
+    r.drawAmbientDust(this.dust);
+    r.drawVignette();
+    r.drawFlash(this.flash);
+  }
+
+  onLevelUp() {
+    this.loop.pause();
+    for (let k = 0; k < 30; k++) {
+      this.particles.push(new Particle(
+        this.player.x, this.player.y,
+        (Math.random() - 0.5) * 400,
+        (Math.random() - 0.5) * 400,
+        Palette.goldHot, 0.9,
+      ));
+    }
+    this.flash = 0.5;
+
+    const choices = this.upgradeSystem.roll(3);
+    this.upgradeMenu.show(this.player.level, choices, (upgrade) => {
+      this.upgradeSystem.apply(upgrade);
+      this.loop.resume();
+    });
+  }
+}

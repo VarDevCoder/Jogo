@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Survivors Mini</title>
+  <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="ui">
+    <div id="topbar">
+      <div id="stats">
+        <span>HP <b id="hp">100</b></span>
+        <span>Nivel <b id="lvl">1</b></span>
+        <span>Kills <b id="kills">0</b></span>
+        <span>Tiempo <b id="time">0:00</b></span>
+      </div>
+    </div>
+    <div id="xpbar"><div id="xpfill"></div></div>
+    <div id="joystick"><div id="stick"></div></div>
+    <div id="overlay"></div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

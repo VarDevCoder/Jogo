@@ -1,0 +1,34 @@
+export const Classes = {
+  mage: {
+    id: 'mage',
+    name: 'Mago',
+    desc: 'Lanza orbes arcanos que persiguen al enemigo más cercano. Equilibrado.',
+    sprite: 'wizard',
+    color: '#f6c453',
+    innerColor: '#fff3c4',
+    stats: { hp: 100, speed: 180, pickupRange: 60, dmgMult: 1.0, atkSpeedMult: 1.0 },
+    weapon: { type: 'orb', dmg: 12, cd: 0.6, range: 180, count: 1, cdT: 0 },
+  },
+  ranger: {
+    id: 'ranger',
+    name: 'Ranger',
+    desc: 'Dispara 3 flechas en arco hacia el frente. Rápido y frágil.',
+    sprite: 'ranger',
+    color: '#5fffaf',
+    innerColor: '#c5ffe5',
+    stats: { hp: 75, speed: 220, pickupRange: 80, dmgMult: 0.85, atkSpeedMult: 1.15 },
+    weapon: { type: 'arrow', dmg: 9, cd: 0.45, range: 320, count: 3, spread: 0.35, cdT: 0 },
+  },
+  melee: {
+    id: 'melee',
+    name: 'Caballero',
+    desc: 'Barre con la espada todo lo que tenga cerca. Tanque con daño en área.',
+    sprite: 'knight',
+    color: '#a0a8c0',
+    innerColor: '#e0e6f0',
+    stats: { hp: 160, speed: 150, pickupRange: 55, dmgMult: 1.15, atkSpeedMult: 0.9 },
+    weapon: { type: 'slash', dmg: 22, cd: 0.7, range: 95, cdT: 0 },
+  },
+};
+
+export const CLASS_ORDER = ['mage', 'ranger', 'melee'];
