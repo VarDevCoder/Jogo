@@ -1,5 +1,5 @@
 export class Enemy {
-  constructor({ x, y, hp, dmg, speed, radius, color, xp, sprite }) {
+  constructor({ x, y, hp, dmg, speed, radius, color, xp, sprite, name, isBoss, gemDrops }) {
     this.x = x; this.y = y;
     this.hp = hp; this.hpMax = hp;
     this.dmg = dmg;
@@ -7,7 +7,10 @@ export class Enemy {
     this.r = radius;
     this.color = color;
     this.xp = xp;
-    this.sprite = sprite || 'zombie';
+    this.sprite = sprite || 'slime';
+    this.name = name || null;
+    this.isBoss = !!isBoss;
+    this.gemDrops = gemDrops || 1;
     this.facing = 1;
     this.hitFlash = 0;
     this.scalePunch = 0;

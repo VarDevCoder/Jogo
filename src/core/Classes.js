@@ -11,7 +11,7 @@ export const Classes = {
   },
   ranger: {
     id: 'ranger',
-    name: 'Ranger',
+    name: 'Arquero',
     desc: 'Dispara 3 flechas en arco hacia el frente. Rápido y frágil.',
     sprite: 'ranger',
     color: '#5fffaf',

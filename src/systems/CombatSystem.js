@@ -139,15 +139,28 @@ export class CombatSystem {
         }
 
         if (e.dead) {
-          for (let k = 0; k < 10; k++) {
+          const burst = e.isBoss ? 30 : 10;
+          const burstSpeed = e.isBoss ? 480 : 280;
+          for (let k = 0; k < burst; k++) {
             particles.push(new Particle(
               e.x, e.y,
-              (Math.random() - 0.5) * 280,
-              (Math.random() - 0.5) * 280,
-              Palette.blood, 0.6,
+              (Math.random() - 0.5) * burstSpeed,
+              (Math.random() - 0.5) * burstSpeed,
+              e.isBoss ? Palette.goldHot : Palette.blood, e.isBoss ? 0.9 : 0.6,
             ));
           }
-          gems.push(new Gem(e.x, e.y, e.xp));
+          if (e.isBoss) {
+            for (let k = 0; k < e.gemDrops; k++) {
+              const a = (k / e.gemDrops) * Math.PI * 2;
+              const dist = e.r * 0.5 + Math.random() * 40;
+              gems.push(new Gem(e.x + Math.cos(a) * dist, e.y + Math.sin(a) * dist, e.xp));
+            }
+            hitStop.freeze(Config.fx.hitStopOnLevelUp);
+            shake.add(0.5);
+            this.game.flash = Math.max(this.game.flash, 0.4);
+          } else {
+            gems.push(new Gem(e.x, e.y, e.xp));
+          }
           enemies.splice(j, 1);
           player.kills++;
           hitStop.freeze(Config.fx.hitStopOnKill);

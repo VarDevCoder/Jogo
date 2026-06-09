@@ -141,7 +141,19 @@ export class Renderer {
     const ctx = this.ctx;
     const x = e.x - cam.x, y = e.y - cam.y;
     const scale = 1 + (e.scalePunch || 0);
-    const fn = Sprites[e.sprite] || Sprites.zombie;
+    const fn = Sprites[e.sprite] || Sprites.slime;
+
+    if (e.isBoss) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const pulse = 0.22 + 0.1 * Math.sin(this.time * 4);
+      const aura = ctx.createRadialGradient(x, y, 0, x, y, e.r * 2);
+      aura.addColorStop(0, `rgba(255, 60, 60, ${pulse})`);
+      aura.addColorStop(1, 'rgba(255, 60, 60, 0)');
+      ctx.fillStyle = aura;
+      ctx.fillRect(x - e.r * 2, y - e.r * 2, e.r * 4, e.r * 4);
+      ctx.restore();
+    }
 
     ctx.save();
     ctx.translate(x, y);
@@ -152,9 +164,25 @@ export class Renderer {
       color: e.color,
       flash: e.hitFlash > 0 ? '#fff' : null,
     });
+    if (e.isBoss) Sprites.crown(ctx, 0, -e.r * 1.15, e.r * 0.65);
     ctx.restore();
 
-    if (e.hp < e.hpMax) {
+    if (e.isBoss) {
+      const bw = e.r * 2.2, bh = 7;
+      const by = y - e.r * 1.7;
+      ctx.font = `900 ${Math.max(13, e.r * 0.32)}px system-ui, -apple-system, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+      ctx.strokeText(e.name, x, by - 5);
+      ctx.fillStyle = Palette.goldHot;
+      ctx.fillText(e.name, x, by - 5);
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.fillRect(x - bw / 2, by, bw, bh);
+      ctx.fillStyle = '#ff4d4d';
+      ctx.fillRect(x - bw / 2, by, bw * (e.hp / e.hpMax), bh);
+    } else if (e.hp < e.hpMax) {
       ctx.fillStyle = 'rgba(0,0,0,0.7)';
       ctx.fillRect(x - e.r, y - e.r - 12, e.r * 2, 4);
       ctx.fillStyle = Palette.amber;
