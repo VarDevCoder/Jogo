@@ -3,6 +3,7 @@ const KEY = 'arcana_save_v1';
 const DEFAULTS = {
   gold: 0,
   meta: {},
+  unlocks: {},
   best: { time: 0, level: 0, kills: 0 },
   totals: { runs: 0, kills: 0, gold: 0 },
   settings: { music: 0.6, sfx: 0.8 },

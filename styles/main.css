@@ -257,6 +257,30 @@ button.big:active { transform: scale(.97); }
 
 /* ---------- Selección de clase ---------- */
 .classPreview { width: 120px; height: 120px; display: block; margin: 0 auto 4px; }
+.classCard.locked { opacity: .75; filter: saturate(.4); }
+.classCard.locked .classPreview { filter: brightness(.4); }
+.classCard.shake { animation: denyShake .3s; }
+.unlockTag {
+  margin-top: 8px; font-size: 13px; font-weight: 800;
+  color: #ffd86b; text-align: center;
+  background: rgba(255, 216, 107, .12);
+  border: 1px solid rgba(255, 216, 107, .4);
+  border-radius: 8px; padding: 6px;
+}
+
+/* ---------- Stats de pausa ---------- */
+.pauseStats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 6px 18px; font-size: 13px; color: #998db0;
+  background: #221330; border: 1px solid #3a2a4d;
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+}
+.pauseStats b { color: #fff; }
+.pauseStats .evolved {
+  grid-column: 1 / -1; text-align: center; color: #ffd86b;
+  font-weight: 900; letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(255,216,107,.5);
+}
 
 /* ---------- Santuario ---------- */
 .goldBar {

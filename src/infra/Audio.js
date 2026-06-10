@@ -123,6 +123,8 @@ export class AudioSystem {
     if (!this._ok('shoot', 70)) return;
     if (type === 'orb') {
       this._tone({ f0: 740, f1: 320, dur: 0.09, type: 'square', vol: 0.06 });
+    } else if (type === 'potion') {
+      this._tone({ f0: 500, f1: 900, dur: 0.15, type: 'sine', vol: 0.08 });
     } else if (type === 'arrow') {
       this._noise({ dur: 0.06, vol: 0.07, freq: 3500 });
       this._tone({ f0: 1300, f1: 700, dur: 0.05, type: 'sawtooth', vol: 0.04 });
@@ -174,6 +176,18 @@ export class AudioSystem {
     if (!this._ok('coin', 50)) return;
     this._tone({ f0: 987.77, dur: 0.06, type: 'square', vol: 0.08 });
     this._tone({ f0: 1318.5, dur: 0.18, type: 'square', vol: 0.08, when: 0.06 });
+  }
+
+  explosion() {
+    if (!this._ok('explosion', 90)) return;
+    this._tone({ f0: 220, f1: 50, dur: 0.25, type: 'sawtooth', vol: 0.16 });
+    this._noise({ dur: 0.22, vol: 0.14, freq: 900, type: 'lowpass' });
+  }
+
+  heartbeat() {
+    if (!this._ok('heartbeat', 850)) return;
+    this._tone({ f0: 70, f1: 45, dur: 0.12, type: 'sine', vol: 0.4 });
+    this._tone({ f0: 65, f1: 42, dur: 0.1, type: 'sine', vol: 0.3, when: 0.18 });
   }
 
   hurt() {

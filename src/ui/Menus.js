@@ -75,32 +75,51 @@ export class Menus {
     const cards = CLASS_ORDER.map(id => {
       const c = Classes[id];
       const s = c.stats;
+      const locked = c.unlock && !this.save.data.unlocks[id];
       return `
-        <button class="classCard" data-id="${id}" style="border-color:${c.color}">
+        <button class="classCard ${locked ? 'locked' : ''}" data-id="${id}" style="border-color:${locked ? '#555' : c.color}">
           <canvas class="classPreview" data-sprite="${c.sprite}" width="120" height="120"></canvas>
-          <div class="classHead" style="color:${c.color}">${c.name}</div>
+          <div class="classHead" style="color:${locked ? '#888' : c.color}">${locked ? '🔒 ' : ''}${c.name}</div>
           <div class="classDesc">${c.desc}</div>
           <div class="classStats">
             <span>HP <b>${s.hp}</b></span>
             <span>SPD <b>${s.speed}</b></span>
             <span>DMG <b>x${s.dmgMult.toFixed(2)}</b></span>
           </div>
+          ${locked ? `<div class="unlockTag">Desbloquear: 🪙 ${c.unlock.cost}</div>` : ''}
         </button>
       `;
     }).join('');
 
     this._show(`
       <h2>Elige tu héroe</h2>
-      <p><b style="color:#fff">PC:</b> WASD/flechas, ESC pausa. <b style="color:#fff">Móvil:</b> joystick.</p>
+      <p><b style="color:#fff">PC:</b> WASD/flechas, ESC pausa. <b style="color:#fff">Móvil:</b> joystick.
+      <br>🪙 <b style="color:#ffd86b">${this.save.data.gold}</b> de oro</p>
       <div class="classes">${cards}</div>
       <button class="menuBtn backBtn" id="backBtn">← Volver</button>
     `);
 
     this.overlay.querySelectorAll('.classCard').forEach(btn => {
       btn.onclick = () => {
+        const id = btn.dataset.id;
+        const c = Classes[id];
+        const locked = c.unlock && !this.save.data.unlocks[id];
+        if (locked) {
+          if (this.save.spendGold(c.unlock.cost)) {
+            this.save.data.unlocks[id] = true;
+            this.save.save();
+            this.audio.buy();
+            this.showClassSelect(onStart, onBack);
+          } else {
+            this.audio.deny();
+            btn.classList.add('shake');
+            setTimeout(() => btn.classList.remove('shake'), 300);
+          }
+          return;
+        }
         this.audio.ui();
         this.hide();
-        onStart(btn.dataset.id);
+        onStart(id);
       };
     });
     this._btn('#backBtn', onBack);
@@ -199,10 +218,21 @@ export class Menus {
   }
 
   // ---------- Pausa ----------
-  showPause({ onResume, onQuit }) {
+  showPause({ onResume, onQuit }, player = null) {
     const s = this.save.data.settings;
+    const stats = player ? `
+      <div class="pauseStats">
+        <span>⚔️ Daño <b>x${player.dmgMult.toFixed(2)}</b></span>
+        <span>⚡ Vel. ataque <b>x${player.atkSpeedMult.toFixed(2)}</b></span>
+        <span>👟 Velocidad <b>x${(player.speedMult || 1).toFixed(2)}</b></span>
+        <span>💚 Regen <b>${player.regen.toFixed(1)}/s</b></span>
+        <span>🍀 Suerte <b>${player.luck || 0}</b></span>
+        <span>💰 Codicia <b>x${(player.greed || 1).toFixed(2)}</b></span>
+        ${player.evolved ? '<span class="evolved">🌟 ARMA EVOLUCIONADA</span>' : ''}
+      </div>` : '';
     this._show(`
       <h2>⏸️ Pausa</h2>
+      ${stats}
       <div class="menuButtons">
         <button class="big" id="resumeBtn">▶️ Continuar</button>
         <label class="optRow">

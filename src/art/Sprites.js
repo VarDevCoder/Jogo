@@ -572,6 +572,130 @@ export const Sprites = {
     ctx.restore();
   },
 
+  alchemist(ctx, x, y, r, opts = {}) {
+    const t = opts.time || 0;
+    const moving = opts.moving || false;
+    const facing = opts.facing || 1;
+    const walk = moving ? Math.sin(t * 12) : 0;
+    const bob = moving ? Math.abs(Math.sin(t * 12)) * 2 : Math.sin(t * 2) * 1;
+    const blink = blinkScale(t + 0.9);
+
+    shadow(ctx, x, y + r * 0.55, r * 0.85);
+
+    ctx.save();
+    ctx.translate(x, y - bob);
+    ctx.scale(facing, 1);
+
+    // botas
+    ellipse(ctx, -r * 0.22 + walk * r * 0.28, r * 0.6, r * 0.14, r * 0.18, '#23402e');
+    ellipse(ctx, r * 0.22 - walk * r * 0.28, r * 0.6, r * 0.14, r * 0.18, '#23402e');
+
+    // túnica verde con degradado
+    fillO(ctx, vGrad(ctx, '#2f6b46', -r * 0.25, r * 0.65), () => {
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.58, r * 0.45);
+      ctx.quadraticCurveTo(-r * 0.52, -r * 0.08, 0, -r * 0.18);
+      ctx.quadraticCurveTo(r * 0.52, -r * 0.08, r * 0.58, r * 0.45);
+      ctx.quadraticCurveTo(0, r * 0.66, -r * 0.58, r * 0.45);
+      ctx.closePath();
+    });
+    rim(ctx, 0, r * 0.16, r * 0.5, r * 0.36, 0.22);
+
+    // cinturón con un frasquito
+    ctx.fillStyle = '#3a2412';
+    ctx.fillRect(-r * 0.48, r * 0.26, r * 0.96, r * 0.11);
+    ctx.fillStyle = '#d4a73a';
+    ctx.fillRect(-r * 0.06, r * 0.25, r * 0.12, r * 0.13);
+    ctx.fillStyle = '#d84444';
+    ctx.fillRect(-r * 0.3, r * 0.3, r * 0.08, r * 0.16);
+    ctx.fillStyle = '#4da6ff';
+    ctx.fillRect(r * 0.22, r * 0.3, r * 0.08, r * 0.16);
+
+    // cara
+    ellipseO(ctx, 0, -r * 0.32, r * 0.34, r * 0.32, SKIN);
+
+    // sonrisa pícara
+    ctx.strokeStyle = '#1a0828';
+    ctx.lineWidth = Math.max(1.2, r * 0.03);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.arc(r * 0.02, -r * 0.14, r * 0.09, 0.3, Math.PI - 0.7);
+    ctx.stroke();
+
+    // capucha verde oscuro
+    fillO(ctx, vGrad(ctx, '#1e4a30', -r * 0.85, -r * 0.28, 0.25, -0.2), () => {
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.4, -r * 0.5);
+      ctx.quadraticCurveTo(0, -r * 0.92, r * 0.4, -r * 0.5);
+      ctx.quadraticCurveTo(r * 0.46, -r * 0.44, r * 0.34, -r * 0.38);
+      ctx.lineTo(-r * 0.34, -r * 0.38);
+      ctx.quadraticCurveTo(-r * 0.46, -r * 0.44, -r * 0.4, -r * 0.5);
+      ctx.closePath();
+    });
+
+    // gafas de alquimista (encima de la capucha, sobre los ojos)
+    [[-1], [1]].forEach(([s]) => {
+      ellipse(ctx, s * r * 0.15, -r * 0.3, r * 0.13, r * 0.13, '#d4a73a');
+      ellipse(ctx, s * r * 0.15, -r * 0.3, r * 0.095, r * 0.095, '#0c2030');
+      if (blink > 0.5) {
+        ctx.fillStyle = '#6ee7ff';
+        ellipse(ctx, s * r * 0.15, -r * 0.29, r * 0.05, r * 0.055);
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ellipse(ctx, s * r * 0.11, -r * 0.34, r * 0.028, r * 0.032);
+      }
+    });
+    // puente de las gafas
+    ctx.strokeStyle = '#d4a73a';
+    ctx.lineWidth = r * 0.05;
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.04, -r * 0.3);
+    ctx.lineTo(r * 0.04, -r * 0.3);
+    ctx.stroke();
+
+    // brazo con frasco burbujeante
+    ctx.save();
+    ctx.translate(r * 0.42, r * 0.0);
+    ctx.rotate(0.25 + walk * 0.15);
+    ctx.fillStyle = shade('#2f6b46', -0.1);
+    ellipse(ctx, 0, r * 0.12, r * 0.1, r * 0.2);
+    ellipse(ctx, 0, r * 0.3, r * 0.09, r * 0.09, SKIN);
+    // frasco
+    ctx.save();
+    ctx.translate(r * 0.05, r * 0.42);
+    ctx.globalCompositeOperation = 'source-over';
+    const glow = ctx.createRadialGradient(0, 0, 0, 0, 0, r * 0.45);
+    glow.addColorStop(0, 'rgba(95, 211, 138, 0.55)');
+    glow.addColorStop(1, 'rgba(95, 211, 138, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(-r * 0.45, -r * 0.45, r * 0.9, r * 0.9);
+    fillO(ctx, 'rgba(220, 245, 255, 0.5)', () => {
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.06, -r * 0.22);
+      ctx.lineTo(r * 0.06, -r * 0.22);
+      ctx.lineTo(r * 0.16, r * 0.1);
+      ctx.quadraticCurveTo(0, r * 0.24, -r * 0.16, r * 0.1);
+      ctx.closePath();
+    }, 1.5);
+    ctx.fillStyle = '#5fd38a';
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.11, 0);
+    ctx.lineTo(r * 0.11, 0);
+    ctx.lineTo(r * 0.16, r * 0.1);
+    ctx.quadraticCurveTo(0, r * 0.24, -r * 0.16, r * 0.1);
+    ctx.closePath();
+    ctx.fill();
+    // burbujas
+    const bp = (t * 1.4) % 1;
+    ctx.fillStyle = `rgba(255,255,255,${0.5 * (1 - bp)})`;
+    ellipse(ctx, -r * 0.04, r * 0.06 - bp * r * 0.2, r * 0.025, r * 0.025);
+    ctx.fillStyle = '#5a3a1c';
+    ctx.fillRect(-r * 0.045, -r * 0.3, r * 0.09, r * 0.09);
+    ctx.restore();
+    ctx.restore();
+
+    ctx.restore();
+  },
+
   slime(ctx, x, y, r, opts = {}) {
     const t = opts.time || 0;
     const facing = opts.facing || 1;

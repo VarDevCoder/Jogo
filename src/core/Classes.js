@@ -29,6 +29,17 @@ export const Classes = {
     stats: { hp: 160, speed: 150, pickupRange: 55, dmgMult: 1.15, atkSpeedMult: 0.9 },
     weapon: { type: 'slash', dmg: 22, cd: 0.7, range: 95, cdT: 0 },
   },
+  alchemist: {
+    id: 'alchemist',
+    name: 'Alquimista',
+    desc: 'Lanza frascos volátiles que explotan en área. Caos químico a distancia.',
+    sprite: 'alchemist',
+    color: '#5fd38a',
+    innerColor: '#c9f5d9',
+    stats: { hp: 90, speed: 190, pickupRange: 70, dmgMult: 1.05, atkSpeedMult: 0.95 },
+    weapon: { type: 'potion', dmg: 18, cd: 1.0, range: 280, splash: 70, count: 1, cdT: 0 },
+    unlock: { cost: 250 },
+  },
 };
 
-export const CLASS_ORDER = ['mage', 'ranger', 'melee'];
+export const CLASS_ORDER = ['mage', 'ranger', 'melee', 'alchemist'];

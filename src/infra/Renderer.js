@@ -339,6 +339,36 @@ export class Renderer {
       ctx.lineTo(-16, 4);
       ctx.closePath();
       ctx.fill();
+    } else if (b.type === 'potion') {
+      ctx.translate(x, y);
+      ctx.rotate(b.angle + (1 - b.life / b.maxLife) * 9);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const pg = ctx.createRadialGradient(0, 0, 0, 0, 0, 16);
+      pg.addColorStop(0, 'rgba(95, 211, 138, 0.55)');
+      pg.addColorStop(1, 'rgba(95, 211, 138, 0)');
+      ctx.fillStyle = pg;
+      ctx.fillRect(-16, -16, 32, 32);
+      ctx.restore();
+      // frasco
+      ctx.fillStyle = 'rgba(220, 245, 255, 0.6)';
+      ctx.beginPath();
+      ctx.moveTo(-2.5, -7);
+      ctx.lineTo(2.5, -7);
+      ctx.lineTo(5.5, 3);
+      ctx.quadraticCurveTo(0, 8, -5.5, 3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#5fd38a';
+      ctx.beginPath();
+      ctx.moveTo(-4, 0);
+      ctx.lineTo(4, 0);
+      ctx.lineTo(5.5, 3);
+      ctx.quadraticCurveTo(0, 8, -5.5, 3);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = '#5a3a1c';
+      ctx.fillRect(-2, -10, 4, 4);
     } else if (b.type === 'slash') {
       const a = Math.sin((1 - b.life / b.maxLife) * Math.PI);
       ctx.globalCompositeOperation = 'lighter';
@@ -443,6 +473,40 @@ export class Renderer {
     ctx.fillStyle = g;
     ctx.fillRect(-30, -30, this.width + 60, this.height + 60);
     ctx.restore();
+  }
+
+  // aro expansivo mientras el imán está activo
+  drawMagnetAura(player, cam, magnetT) {
+    const ctx = this.ctx;
+    const x = player.x - cam.x, y = player.y - cam.y;
+    const t = (this.time * 2) % 1;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 2; i++) {
+      const p = (t + i * 0.5) % 1;
+      const r = 40 + (1 - p) * 320;
+      ctx.strokeStyle = `rgba(110, 231, 255, ${p * 0.45 * Math.min(1, magnetT)})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // viñeta roja pulsante cuando la vida está crítica
+  drawLowHp(intensity) {
+    const ctx = this.ctx;
+    const pulse = 0.5 + 0.5 * Math.sin(this.time * 6);
+    const a = intensity * (0.25 + 0.2 * pulse);
+    const g = ctx.createRadialGradient(
+      this.width / 2, this.height / 2, this.height * 0.35,
+      this.width / 2, this.height / 2, Math.max(this.width, this.height) * 0.7
+    );
+    g.addColorStop(0, 'rgba(200, 30, 30, 0)');
+    g.addColorStop(1, `rgba(200, 30, 30, ${a})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(-30, -30, this.width + 60, this.height + 60);
   }
 
   drawVignette() {

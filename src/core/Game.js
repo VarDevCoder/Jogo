@@ -75,7 +75,7 @@ export class Game {
           this.paused = false;
           this._endRun();
         },
-      });
+      }, this.player);
     }
   }
 
@@ -124,6 +124,11 @@ export class Game {
 
     this._updateDamageNumbers(dt);
     this.hud.update(this.player, this.time);
+
+    // latido de corazón con vida crítica
+    if (this.player.hp > 0 && this.player.hp / this.player.hpMax < 0.3) {
+      if (this.audio) this.audio.heartbeat();
+    }
 
     if (this.player.hp <= 0 && !this.over) {
       this._endRun();
@@ -206,6 +211,7 @@ export class Game {
     for (const e of this.enemies) r.drawEnemy(e, this.cam);
     for (const b of this.bullets) r.drawBullet(b, this.cam);
     r.drawPlayer(this.player, this.cam);
+    if (this.magnetT > 0) r.drawMagnetAura(this.player, this.cam, this.magnetT);
 
     r.drawLighting(this.cam, this.player);
 
@@ -213,6 +219,8 @@ export class Game {
 
     r.drawAmbientDust(this.dust);
     r.drawVignette();
+    const hpRatio = this.player.hp / this.player.hpMax;
+    if (hpRatio < 0.3 && hpRatio > 0) r.drawLowHp(1 - hpRatio / 0.3);
     r.drawFlash(this.flash);
   }
 

@@ -23,6 +23,7 @@ export class CombatSystem {
         else if (w.type === 'area')  this._fireArea(w);
         else if (w.type === 'arrow') this._fireArrows(w);
         else if (w.type === 'slash') this._fireSlash(w);
+        else if (w.type === 'potion') for (let i = 0; i < (w.count || 1); i++) this._firePotion(w);
         if (audio) audio.shoot(w.type);
       }
     }
@@ -99,6 +100,58 @@ export class CombatSystem {
     player.swinging = 1;
   }
 
+  // Frasco del alquimista: vuela en arco hasta el objetivo y explota en área.
+  _firePotion(w) {
+    const { player, enemies, bullets } = this.game;
+    let tx, ty;
+    const inRange = enemies.filter(e =>
+      Math.hypot(e.x - player.x, e.y - player.y) < w.range);
+    if (inRange.length) {
+      const e = inRange[Math.floor(Math.random() * inRange.length)];
+      tx = e.x + (Math.random() - 0.5) * 30;
+      ty = e.y + (Math.random() - 0.5) * 30;
+    } else {
+      const a = Math.random() * Math.PI * 2;
+      const d = w.range * (0.4 + Math.random() * 0.5);
+      tx = player.x + Math.cos(a) * d;
+      ty = player.y + Math.sin(a) * d;
+    }
+    const dist = Math.hypot(tx - player.x, ty - player.y) || 1;
+    const speed = 320;
+    bullets.push(new Bullet({
+      x: player.x, y: player.y,
+      vx: (tx - player.x) / dist * speed,
+      vy: (ty - player.y) / dist * speed,
+      dmg: w.dmg * player.dmgMult,
+      r: 7,
+      life: dist / speed,
+      type: 'potion',
+      maxR: w.splash || 70,
+    }));
+  }
+
+  _explodePotion(b) {
+    const { bullets, particles, audio } = this.game;
+    bullets.push(new Bullet({
+      x: b.x, y: b.y,
+      vx: 0, vy: 0,
+      dmg: b.dmg,
+      r: 5,
+      life: 0.22,
+      type: 'area',
+      maxR: b.maxR,
+    }));
+    for (let k = 0; k < 8; k++) {
+      particles.push(new Particle(
+        b.x, b.y,
+        (Math.random() - 0.5) * 260,
+        (Math.random() - 0.5) * 260,
+        '#5fd38a', 0.45,
+      ));
+    }
+    if (audio) audio.explosion();
+  }
+
   _fireArea(w) {
     const { player, bullets } = this.game;
     bullets.push(new Bullet({
@@ -117,7 +170,13 @@ export class CombatSystem {
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
       b.update(dt);
-      if (b.expired) { bullets.splice(i, 1); continue; }
+      if (b.expired) {
+        if (b.type === 'potion') this._explodePotion(b);
+        bullets.splice(i, 1);
+        continue;
+      }
+      // los frascos no dañan al contacto: vuelan hasta explotar
+      if (b.type === 'potion') continue;
 
       for (let j = enemies.length - 1; j >= 0; j--) {
         const e = enemies[j];

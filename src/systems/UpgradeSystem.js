@@ -44,6 +44,26 @@ const POOLS = {
       desc: v => `+${v} rango de recogida de gemas`,
       apply: (p, v) => { p.pickupRange += v; } },
   ],
+  alchemist: [
+    { id: 'alch_dmg', name: 'Catalizador', icon: '🧪', base: 13,
+      desc: v => `+${v}% daño de las explosiones`,
+      apply: (p, v) => { p.dmgMult *= 1 + v / 100; } },
+    { id: 'alch_atkspd', name: 'Destilación Veloz', icon: '⚗️', base: 11,
+      desc: v => `+${v}% velocidad de lanzamiento`,
+      apply: (p, v) => { p.atkSpeedMult *= 1 + v / 100; } },
+    { id: 'alch_splash', name: 'Reacción Expansiva', icon: '💨', base: 9,
+      desc: v => `+${v}% radio de explosión`,
+      apply: (p, v) => { const w = p.weapons[0]; if (w.splash) w.splash *= 1 + v / 100; } },
+    { id: 'alch_hp', name: 'Tónico Robusto', icon: '🍶', base: 14,
+      desc: v => `+${v} HP máximo (y cura ${v})`,
+      apply: (p, v) => { p.hpMax += v; p.hp = Math.min(p.hpMax, p.hp + v); } },
+    { id: 'alch_regen', name: 'Poción Lenta', icon: '💚', base: 0.5, decimals: 1,
+      desc: v => `+${v} HP por segundo`,
+      apply: (p, v) => { p.regen += v; } },
+    { id: 'alch_magnet', name: 'Vapores Atrayentes', icon: '🧲', base: 28,
+      desc: v => `+${v} rango de recogida de gemas`,
+      apply: (p, v) => { p.pickupRange += v; } },
+  ],
   melee: [
     { id: 'melee_dmg', name: 'Filo Brutal', icon: '⚔️', base: 16,
       desc: v => `+${v}% daño del tajo`,
@@ -116,6 +136,70 @@ const UNIQUES = {
         p.hp = p.hpMax;
       } },
   ],
+  alchemist: [
+    { id: 'alch_jp_bomb', name: 'Bomba Inestable', icon: '💣',
+      desc: '+1 frasco por lanzamiento y explosiones +40% más grandes',
+      apply: (p) => {
+        const w = p.weapons[0];
+        w.count = (w.count || 1) + 1;
+        if (w.splash) w.splash *= 1.4;
+      } },
+    { id: 'alch_jp_elixir', name: 'Elixir Filosofal', icon: '🏺',
+      desc: '+80 HP máximo, +2 HP/s y curación completa',
+      apply: (p) => {
+        p.hpMax += 80;
+        p.regen += 2;
+        p.hp = p.hpMax;
+      } },
+  ],
+};
+
+// Evolución del arma: el jackpot definitivo de cada clase.
+// Solo puede aparecer cuando ya obtuviste las otras 2 legendarias.
+const EVOLUTIONS = {
+  mage: {
+    id: 'mage_evo', name: 'ASCENSIÓN: Archimago', icon: '🌟', evolution: true,
+    desc: 'Tu arma evoluciona: +1 orbe, +60% daño y lanzas mucho más rápido',
+    apply: (p) => {
+      const w = p.weapons[0];
+      w.count = (w.count || 1) + 1;
+      w.dmg *= 1.6;
+      w.cd *= 0.75;
+      p.evolved = true;
+    },
+  },
+  ranger: {
+    id: 'ranger_evo', name: 'ASCENSIÓN: Tempestad', icon: '🌟', evolution: true,
+    desc: 'Tu arma evoluciona: +2 flechas y disparas +40% más rápido',
+    apply: (p) => {
+      const w = p.weapons[0];
+      w.count = (w.count || 3) + 2;
+      p.atkSpeedMult *= 1.4;
+      p.evolved = true;
+    },
+  },
+  melee: {
+    id: 'melee_evo', name: 'ASCENSIÓN: Avatar de Guerra', icon: '🌟', evolution: true,
+    desc: 'Tu arma evoluciona: tajo +40% de área, +50% daño y +25% velocidad',
+    apply: (p) => {
+      const w = p.weapons[0];
+      w.range *= 1.4;
+      w.dmg *= 1.5;
+      p.atkSpeedMult *= 1.25;
+      p.evolved = true;
+    },
+  },
+  alchemist: {
+    id: 'alch_evo', name: 'ASCENSIÓN: Gran Alquimista', icon: '🌟', evolution: true,
+    desc: 'Tu arma evoluciona: +1 frasco, explosiones +50% y +40% daño',
+    apply: (p) => {
+      const w = p.weapons[0];
+      w.count = (w.count || 1) + 1;
+      if (w.splash) w.splash *= 1.5;
+      w.dmg *= 1.4;
+      p.evolved = true;
+    },
+  },
 };
 
 function roundValue(upgrade, mult) {
@@ -137,9 +221,16 @@ export class UpgradeSystem {
     const classId = this.game.player.classId;
     const luck = (this.game.player.luck || 0) + luckBonus;
     const pool = [...(POOLS[classId] || POOLS.mage)].sort(() => Math.random() - 0.5);
-    const uniques = (UNIQUES[classId] || [])
+    const baseUniques = (UNIQUES[classId] || []);
+    const uniques = baseUniques
       .filter(u => !this.takenUniques.has(u.id))
       .sort(() => Math.random() - 0.5);
+    // la evolución se habilita al reclamar las otras legendarias de la clase
+    const evo = EVOLUTIONS[classId];
+    if (evo && !this.takenUniques.has(evo.id) &&
+        baseUniques.every(u => this.takenUniques.has(u.id))) {
+      uniques.push(evo);
+    }
 
     const cards = [];
     for (let i = 0; i < count; i++) {
