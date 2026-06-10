@@ -13,7 +13,7 @@ import { Background } from '../fx/Background.js';
 import { Particle } from '../entities/Particle.js';
 
 export class Game {
-  constructor({ renderer, input, hud, upgradeMenu, menus, audio, save, onGameOver, classId }) {
+  constructor({ renderer, input, hud, upgradeMenu, menus, audio, save, onGameOver, classId, debug }) {
     this.renderer = renderer;
     this.input = input;
     this.hud = hud;
@@ -22,6 +22,8 @@ export class Game {
     this.audio = audio;
     this.save = save;
     this.onGameOver = onGameOver;
+    this.debug = debug || null;
+    this.cheats = null;
 
     this.background = new Background();
     this.renderer.background = this.background;
@@ -81,7 +83,9 @@ export class Game {
     }
   }
 
-  update(dt) {
+  update(dtRaw) {
+    const dt = dtRaw * (this.cheats?.timeScale ?? 1);
+    this.debug?.update(dtRaw, this);
     this.dust.update(dt);
     this.renderer.tick(dt);
     this.shake.update(dt);

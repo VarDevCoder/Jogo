@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Survivors Mini — Tests</title>
+  <style>
+    body { font-family: ui-monospace, monospace; background: #0e0418; color: #ddd; padding: 24px; max-width: 900px; margin: auto; }
+    h1 { color: #ffd86b; margin-bottom: 4px; }
+    .sub { color: #888; margin-bottom: 20px; font-size: 13px; }
+    .hdr { font-size: 18px; font-weight: 800; padding: 14px 18px; background: #1a0b2e; border-radius: 8px; margin-bottom: 16px; }
+    .suite { background: #1a0b2e; border-radius: 8px; padding: 14px 18px; margin-bottom: 12px; }
+    .suiteName { color: #c77dff; font-weight: 700; margin-bottom: 8px; font-size: 14px; border-bottom: 1px solid #3d2750; padding-bottom: 6px; }
+    .test { padding: 4px 0; font-size: 13px; }
+    .test.pass { color: #5fffaf; }
+    .test.fail { color: #ff6b6b; }
+    .err { color: #ffba8b; font-size: 12px; padding: 4px 0 6px 18px; white-space: pre-wrap; }
+    .loading { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>🧪 Tests</h1>
+  <div class="sub">Survivors Mini — unit tests browser-side. Cero dependencias.</div>
+  <div id="out" class="loading">Cargando tests…</div>
+
+  <script type="module">
+    import './tests/rarity.test.js';
+    import './tests/player.test.js';
+    import './tests/fx.test.js';
+    import './tests/upgrade.test.js';
+    import { runAll } from './tests/runner.js';
+
+    runAll(document.getElementById('out')).catch(err => {
+      document.getElementById('out').innerHTML =
+        `<div style="color:#ff6b6b">Runner crashed: ${err.message}</div>`;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>
