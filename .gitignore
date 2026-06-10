@@ -7,3 +7,12 @@ Thumbs.db
 dist/
 build/
 .cache/
+
+# Playwright/test artifacts
+.playwright-mcp/
+.claude/worktrees/
+
+# Test screenshots (ad-hoc, no parte del repo)
+0?-*.png
+merged-*.png
+page-*.png
