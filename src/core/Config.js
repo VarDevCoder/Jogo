@@ -26,7 +26,7 @@ export const Config = {
     color: Palette.player,
     innerColor: Palette.playerInner,
   },
-  xp: { initialNext: 5, growth: 1.5, add: 2 },
+  xp: { initialNext: 5, growth: 1.35, add: 2 },
   spawn: { minRate: 0.15, maxRate: 1.2, rampSeconds: 60 },
   enemies: [
     { hp: 15,  dmg: 8,  speed: 60, radius: 16, color: '#3ddc84', xp: 1, sprite: 'slime' },

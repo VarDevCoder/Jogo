@@ -75,7 +75,7 @@ export class SpawnSystem {
     this.game.enemies.push(new Enemy({
       x, y,
       hp: def.hp * hpScale,
-      dmg: def.dmg,
+      dmg: def.dmg * (1 + this.game.time / 300),
       speed: def.speed,
       radius: def.radius,
       color: def.color,

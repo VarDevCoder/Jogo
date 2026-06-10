@@ -43,6 +43,8 @@ export class Game {
     this.paused = false;
     this.flash = 0;
     this.magnetT = 0;
+    this._pendingLevels = 0;
+    this._levelMenuOpen = false;
 
     this.shake = new ScreenShake();
     this.hitStop = new HitStop();
@@ -224,7 +226,16 @@ export class Game {
     r.drawFlash(this.flash);
   }
 
+  // Los niveles ganados de golpe (p. ej. con el imán) se encolan para
+  // que cada uno reparta sus cartas sin pisar el menú anterior.
   onLevelUp() {
+    this._pendingLevels++;
+    if (this._levelMenuOpen) return;
+    this._showLevelMenu();
+  }
+
+  _showLevelMenu() {
+    this._levelMenuOpen = true;
     this.loop.pause();
     if (this.audio) {
       this.audio.levelup();
@@ -244,7 +255,13 @@ export class Game {
     this.upgradeMenu.show(this.player.level, choices, (card) => {
       this.upgradeSystem.apply(card);
       if (this.audio) this.audio.cardPick(card.rarity.id === 'jackpot');
-      this.loop.resume();
+      this._pendingLevels--;
+      if (this._pendingLevels > 0) {
+        this._showLevelMenu();
+      } else {
+        this._levelMenuOpen = false;
+        this.loop.resume();
+      }
     });
   }
 }
