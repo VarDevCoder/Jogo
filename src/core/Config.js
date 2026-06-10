@@ -52,11 +52,14 @@ export const Config = {
     grid: { size: 60, color: Palette.grid },
   },
   fx: {
-    shakeOnHit: 0.18,
-    shakeOnPlayerHit: 0.35,
+    shakeOnHit: 0,
+    shakeOnCrit: 0.12,
+    shakeOnPlayerHit: 0.15,
+    shakeOnBossKill: 0.2,
+    shakeOnBossSpawn: 0.15,
     hitStopOnKill: 0.05,
     hitStopOnLevelUp: 0.18,
-    critChance: 0.15,
-    critMult: 2,
+    critChance: 0.18,
+    critMult: 2.5,
   },
 };

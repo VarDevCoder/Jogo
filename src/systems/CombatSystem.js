@@ -127,7 +127,7 @@ export class CombatSystem {
         const dmg = b.dmg * (crit ? Config.fx.critMult : 1);
         e.takeDamage(dmg);
         damageNumbers.push(new DamageNumber(e.x, e.y - e.r, dmg, crit));
-        shake.add(Config.fx.shakeOnHit * (crit ? 1.5 : 1));
+        if (crit) shake.add(Config.fx.shakeOnCrit);
 
         for (let k = 0; k < 4; k++) {
           particles.push(new Particle(
@@ -156,7 +156,7 @@ export class CombatSystem {
               gems.push(new Gem(e.x + Math.cos(a) * dist, e.y + Math.sin(a) * dist, e.xp));
             }
             hitStop.freeze(Config.fx.hitStopOnLevelUp);
-            shake.add(0.5);
+            shake.add(Config.fx.shakeOnBossKill);
             this.game.flash = Math.max(this.game.flash, 0.4);
           } else {
             gems.push(new Gem(e.x, e.y, e.xp));
@@ -164,7 +164,6 @@ export class CombatSystem {
           enemies.splice(j, 1);
           player.kills++;
           hitStop.freeze(Config.fx.hitStopOnKill);
-          shake.add(0.08);
         }
         if (b.type === 'orb' || b.type === 'arrow') { bullets.splice(i, 1); break; }
         if (b.type === 'area' || b.type === 'slash') { b.hits.add(e); }

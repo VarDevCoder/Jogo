@@ -1,12 +1,13 @@
 export class ScreenShake {
   constructor() {
     this.trauma = 0;
-    this.maxOffset = 22;
-    this.decay = 1.5;
+    this.maxOffset = 7;
+    this.decay = 5;
+    this.cap = 0.4;
   }
 
   add(amount) {
-    this.trauma = Math.min(1, this.trauma + amount);
+    this.trauma = Math.min(this.cap, this.trauma + amount);
   }
 
   update(dt) {

@@ -77,7 +77,7 @@ export class SpawnSystem {
       gemDrops: def.gems,
     }));
 
-    this.game.shake.add(0.4);
+    this.game.shake.add(Config.fx.shakeOnBossSpawn);
     this.game.flash = Math.max(this.game.flash, 0.25);
   }
 }
