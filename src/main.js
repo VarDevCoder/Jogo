@@ -8,6 +8,7 @@ import { HUD } from './ui/HUD.js';
 import { UpgradeMenu } from './ui/UpgradeMenu.js';
 import { Menus } from './ui/Menus.js';
 import { StatsMenu } from './ui/StatsMenu.js';
+import { UltiButton } from './ui/UltiButton.js';
 import { DebugOverlay } from './debug/DebugOverlay.js';
 import { CheatMenu } from './debug/CheatMenu.js';
 
@@ -27,6 +28,7 @@ function bootstrap() {
   const upgradeMenu = new UpgradeMenu(overlay);
   const menus = new Menus(overlay, { save, audio });
   const statsMenu = new StatsMenu(overlay, audio);
+  const ultiButton = new UltiButton(document.getElementById('ultiBtn'), input);
 
   let game = null;
 
@@ -43,6 +45,7 @@ function bootstrap() {
       },
     });
     game.cheats = new CheatMenu(game);
+    ultiButton.attachGame(game);
     window.__game = game;
     game.start();
   }

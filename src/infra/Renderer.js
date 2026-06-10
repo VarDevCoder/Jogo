@@ -301,7 +301,17 @@ export class Renderer {
     const x = b.x - cam.x, y = b.y - cam.y;
     ctx.save();
 
-    if (b.type === 'area') {
+    if (b.type === 'laser_column') {
+      this._drawLaserColumn(b, x, y);
+    } else if (b.type === 'whirlwind') {
+      this._drawWhirlwind(b, x, y);
+    } else if (b.type === 'inferno_pool') {
+      this._drawInfernoPool(b, x, y);
+    } else if (b.type === 'arrow_rain_marker') {
+      this._drawArrowRainMarker(b, x, y);
+    } else if (b.type === 'rain_arrow') {
+      this._drawRainArrow(b, x, y);
+    } else if (b.type === 'area') {
       ctx.globalCompositeOperation = 'lighter';
       const a = b.life / b.maxLife;
       const g = ctx.createRadialGradient(x, y, 0, x, y, b.r);
@@ -525,5 +535,247 @@ export class Renderer {
     if (alpha <= 0) return;
     this.ctx.fillStyle = `rgba(255,255,255,${alpha})`;
     this.ctx.fillRect(-30, -30, this.width + 60, this.height + 60);
+  }
+
+  // ===================== ULTI VISUALS =====================
+  _drawLaserColumn(b, x, y) {
+    const ctx = this.ctx;
+    const halfW = b.columnHalfW || b.r;
+    const t = b.life / b.maxLife;
+    const flicker = 0.85 + 0.15 * Math.sin(this.time * 60);
+    const alpha = Math.min(1, t * 1.6) * flicker;
+    const top = -60, bot = this.height + 60;
+
+    // Outer wide glow
+    ctx.globalCompositeOperation = 'lighter';
+    const gW = halfW * 3.2;
+    const grad = ctx.createLinearGradient(x - gW, 0, x + gW, 0);
+    grad.addColorStop(0, 'rgba(110, 231, 255, 0)');
+    grad.addColorStop(0.5, `rgba(110, 231, 255, ${0.35 * alpha})`);
+    grad.addColorStop(1, 'rgba(110, 231, 255, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - gW, top, gW * 2, bot - top);
+
+    // Core column
+    const core = ctx.createLinearGradient(x - halfW, 0, x + halfW, 0);
+    core.addColorStop(0, `rgba(110, 231, 255, ${0.25 * alpha})`);
+    core.addColorStop(0.4, `rgba(180, 240, 255, ${0.75 * alpha})`);
+    core.addColorStop(0.5, `rgba(255, 255, 255, ${0.95 * alpha})`);
+    core.addColorStop(0.6, `rgba(180, 240, 255, ${0.75 * alpha})`);
+    core.addColorStop(1, `rgba(110, 231, 255, ${0.25 * alpha})`);
+    ctx.fillStyle = core;
+    ctx.fillRect(x - halfW, top, halfW * 2, bot - top);
+
+    // Bright center line
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.9 * alpha})`;
+    ctx.fillRect(x - 3, top, 6, bot - top);
+
+    // Horizontal shockwave rings at player base
+    const t2 = 1 - t;
+    for (let k = 0; k < 3; k++) {
+      const phase = (t2 * 1.2 + k * 0.33) % 1;
+      const rr = phase * halfW * 4;
+      const a = (1 - phase) * 0.45 * alpha;
+      ctx.strokeStyle = `rgba(180, 240, 255, ${a})`;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(x, y, rr, rr * 0.25, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    // Sparks falling
+    if (Math.random() < 0.3) {
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+      for (let k = 0; k < 5; k++) {
+        const sx = x + (Math.random() - 0.5) * halfW * 1.6;
+        const sy = Math.random() * this.height;
+        ctx.fillRect(sx, sy, 2, 6 + Math.random() * 10);
+      }
+    }
+  }
+
+  _drawWhirlwind(b, x, y) {
+    const ctx = this.ctx;
+    const t = b.life / b.maxLife;
+    const alpha = Math.min(1, t * 1.4);
+    const rot = this.time * 12;
+
+    // Trail ring
+    ctx.globalCompositeOperation = 'lighter';
+    const ringGrad = ctx.createRadialGradient(x, y, b.r * 0.25, x, y, b.r * 1.15);
+    ringGrad.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    ringGrad.addColorStop(0.65, `rgba(255, 255, 255, ${0.18 * alpha})`);
+    ringGrad.addColorStop(0.9, `rgba(180, 220, 255, ${0.55 * alpha})`);
+    ringGrad.addColorStop(1, 'rgba(180, 220, 255, 0)');
+    ctx.fillStyle = ringGrad;
+    ctx.fillRect(x - b.r * 1.2, y - b.r * 1.2, b.r * 2.4, b.r * 2.4);
+
+    // Motion blur arcs
+    for (let k = 0; k < 5; k++) {
+      const a1 = rot + k * 0.5;
+      const a2 = a1 + 0.6;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${0.18 * alpha * (1 - k / 5)})`;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(x, y, b.r * (0.7 + k * 0.06), a1, a2);
+      ctx.stroke();
+    }
+
+    // 6 spinning swords
+    const swords = 6;
+    for (let i = 0; i < swords; i++) {
+      const a = rot + (i / swords) * Math.PI * 2;
+      const sx = x + Math.cos(a) * b.r * 0.85;
+      const sy = y + Math.sin(a) * b.r * 0.85;
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(a + Math.PI / 2);
+      // blade
+      const bladeGrad = ctx.createLinearGradient(0, -22, 0, 22);
+      bladeGrad.addColorStop(0, '#ffffff');
+      bladeGrad.addColorStop(0.5, '#d8e0e8');
+      bladeGrad.addColorStop(1, '#8a98a8');
+      ctx.fillStyle = bladeGrad;
+      ctx.fillRect(-3, -22, 6, 30);
+      // tip
+      ctx.beginPath();
+      ctx.moveTo(-3, -22);
+      ctx.lineTo(3, -22);
+      ctx.lineTo(0, -30);
+      ctx.closePath();
+      ctx.fill();
+      // guard
+      ctx.fillStyle = '#f6c453';
+      ctx.fillRect(-7, 6, 14, 3);
+      // hilt
+      ctx.fillStyle = '#5a3a1c';
+      ctx.fillRect(-2, 9, 4, 9);
+      ctx.restore();
+    }
+
+    // Center burst
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.3 * alpha})`;
+    ctx.beginPath();
+    ctx.arc(x, y, 8 + Math.sin(this.time * 20) * 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  _drawInfernoPool(b, x, y) {
+    const ctx = this.ctx;
+    const t = b.life / b.maxLife;
+    const alpha = Math.min(1, t * 1.5);
+
+    // Base pool
+    ctx.globalCompositeOperation = 'lighter';
+    const pool = ctx.createRadialGradient(x, y, 0, x, y, b.r);
+    pool.addColorStop(0, `rgba(140, 255, 140, ${0.45 * alpha})`);
+    pool.addColorStop(0.55, `rgba(95, 255, 175, ${0.35 * alpha})`);
+    pool.addColorStop(1, 'rgba(95, 255, 175, 0)');
+    ctx.fillStyle = pool;
+    ctx.fillRect(x - b.r, y - b.r, b.r * 2, b.r * 2);
+
+    // Outline ring
+    ctx.strokeStyle = `rgba(95, 255, 175, ${0.6 * alpha})`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, b.r * 0.85, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Toxic bubbles (deterministic via bubbleSeed)
+    const seed = b.bubbleSeed || 0;
+    for (let i = 0; i < 5; i++) {
+      const ph = (this.time * 1.5 + seed + i * 0.7) % 1;
+      const ang = (seed + i * 1.7) * Math.PI * 2;
+      const dist = b.r * 0.55 * (0.4 + ph * 0.5);
+      const bx = x + Math.cos(ang) * dist;
+      const by = y + Math.sin(ang) * dist - ph * 14;
+      const br = (1 - ph) * 6;
+      const ba = (1 - ph) * 0.7 * alpha;
+      ctx.fillStyle = `rgba(180, 255, 200, ${ba})`;
+      ctx.beginPath();
+      ctx.arc(bx, by, br, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Toxic gas wisp
+    const wisp = ctx.createRadialGradient(x, y - 6, 0, x, y - 6, b.r * 0.7);
+    wisp.addColorStop(0, `rgba(120, 255, 160, ${0.18 * alpha})`);
+    wisp.addColorStop(1, 'rgba(120, 255, 160, 0)');
+    ctx.fillStyle = wisp;
+    ctx.fillRect(x - b.r, y - b.r - 6, b.r * 2, b.r * 2);
+  }
+
+  _drawArrowRainMarker(b, x, y) {
+    const ctx = this.ctx;
+    const t = b.life / b.maxLife;
+    const pulse = 0.7 + 0.3 * Math.sin(this.time * 8);
+    const alpha = Math.min(1, t * 1.5);
+
+    ctx.globalCompositeOperation = 'lighter';
+    // ground circle
+    const g = ctx.createRadialGradient(x, y, b.r * 0.2, x, y, b.r);
+    g.addColorStop(0, `rgba(255, 80, 80, 0)`);
+    g.addColorStop(0.7, `rgba(255, 60, 80, ${0.15 * alpha})`);
+    g.addColorStop(1, `rgba(255, 100, 100, ${0.45 * alpha * pulse})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(x - b.r, y - b.r, b.r * 2, b.r * 2);
+
+    // Pulsing ring
+    ctx.strokeStyle = `rgba(255, 90, 110, ${0.75 * alpha * pulse})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(x, y, b.r * pulse, b.r * 0.35 * pulse, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Crosshair
+    ctx.strokeStyle = `rgba(255, 180, 180, ${0.5 * alpha})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x - 10, y); ctx.lineTo(x + 10, y);
+    ctx.moveTo(x, y - 10); ctx.lineTo(x, y + 10);
+    ctx.stroke();
+  }
+
+  _drawRainArrow(b, x, y) {
+    const ctx = this.ctx;
+    const ty = (b.targetY != null) ? (b.targetY - (b.y - y)) : y; // target in screen space
+    // Trail
+    ctx.globalCompositeOperation = 'lighter';
+    const trailLen = 36;
+    const grad = ctx.createLinearGradient(x, y - trailLen, x, y);
+    grad.addColorStop(0, 'rgba(95, 255, 175, 0)');
+    grad.addColorStop(1, 'rgba(95, 255, 175, 0.8)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - 2, y - trailLen, 4, trailLen);
+
+    // Arrow shaft
+    ctx.fillStyle = '#5a3a1c';
+    ctx.fillRect(x - 1, y - 14, 2, 14);
+    // Arrow head
+    ctx.fillStyle = '#d8e0e8';
+    ctx.beginPath();
+    ctx.moveTo(x - 4, y);
+    ctx.lineTo(x + 4, y);
+    ctx.lineTo(x, y + 7);
+    ctx.closePath();
+    ctx.fill();
+    // Fletching
+    ctx.fillStyle = '#5fffaf';
+    ctx.beginPath();
+    ctx.moveTo(x, y - 14);
+    ctx.lineTo(x - 4, y - 18);
+    ctx.lineTo(x + 4, y - 18);
+    ctx.closePath();
+    ctx.fill();
+
+    // Landing target ring
+    const ringR = Math.max(0, ty - y);
+    if (ringR > 0 && ringR < 80) {
+      ctx.strokeStyle = `rgba(255, 100, 120, ${0.35})`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.ellipse(x, ty, 10, 4, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
   }
 }

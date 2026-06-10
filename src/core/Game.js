@@ -104,6 +104,11 @@ export class Game {
     const dir = this.input.getDirection();
     this.player.move(dir.x, dir.y, dt);
     this.player.regenerate(dt);
+    this.player.tickUlti(dt);
+
+    if (this.input.consumeUlti && this.input.consumeUlti()) {
+      this.player.castUlti(this);
+    }
 
     const wasHp = this.player.hp;
     const { width, height } = this.renderer.getSize();
