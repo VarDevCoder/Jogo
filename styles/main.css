@@ -392,3 +392,87 @@ button.big:active { transform: scale(.97); }
   animation: recordBlink 1s ease-in-out infinite;
 }
 @keyframes recordBlink { 50% { opacity: .4; } }
+
+/* ---------- HUD: chips de stats RPG ---------- */
+#statsRpg {
+  display: flex; gap: 10px; align-items: center;
+  margin-top: 4px; font-size: 13px;
+  flex-basis: 100%; flex-wrap: wrap;
+  position: relative;
+}
+.statChip {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(40, 20, 60, .55);
+  border: 1px solid rgba(199, 125, 255, .25);
+  padding: 3px 9px; border-radius: 14px;
+  font-weight: 700;
+}
+.statChip b { color: #fff; font-weight: 800; }
+.statBadge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 26px; height: 22px; padding: 0 7px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #ffe9a0, #d4a73a);
+  color: #2a1606; font-weight: 900; font-size: 12px;
+  box-shadow: 0 0 12px rgba(255, 216, 107, .65);
+  animation: badgePulse 1.4s ease-in-out infinite;
+  margin-left: auto;
+}
+.statBadge.hidden { display: none; }
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 216, 107, .5); }
+  50%      { transform: scale(1.08); box-shadow: 0 0 18px rgba(255, 216, 107, .9); }
+}
+
+/* ---------- Menú de stats (asignación manual) ---------- */
+.statPoints {
+  color: #ffd86b;
+  font-size: 20px;
+  text-shadow: 0 0 10px rgba(255, 216, 107, .6);
+}
+.statsList {
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; max-width: 420px; margin-bottom: 16px;
+}
+.statRow {
+  display: grid;
+  grid-template-columns: 36px 1fr auto 52px;
+  align-items: center; gap: 10px;
+  background: #221330;
+  border: 2px solid #3a2a4d;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.statIcon { font-size: 22px; text-align: center; }
+.statName { font-size: 14px; font-weight: 800; color: #fff; text-align: left; }
+.statValue { font-size: 18px; text-align: right; font-weight: 800; }
+.statValue b { color: inherit; }
+.statPlus {
+  background: linear-gradient(180deg, #c77dff, #7a3acc);
+  border: none; border-radius: 10px;
+  width: 48px; height: 40px;
+  font-size: 22px; font-weight: 900; color: #fff;
+  cursor: pointer; font-family: inherit;
+  box-shadow: 0 2px 8px rgba(122, 58, 204, .55);
+  transition: transform .08s, box-shadow .08s, filter .08s;
+}
+.statPlus:hover:not(:disabled), .statPlus:active:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(199, 125, 255, .75);
+  filter: brightness(1.1);
+}
+.statPlus:disabled {
+  background: #3a2a4d; color: #6a5a80; cursor: not-allowed;
+  box-shadow: none;
+}
+button.big:disabled {
+  background: #3a2a4d; color: #6a5a80; cursor: not-allowed;
+}
+@media (max-width: 480px) {
+  .statRow {
+    grid-template-columns: 32px 1fr 44px 44px;
+    gap: 8px; padding: 10px;
+  }
+  .statName { font-size: 13px; }
+  .statPlus { width: 44px; height: 44px; font-size: 20px; }
+}

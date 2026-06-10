@@ -1,5 +1,6 @@
 import { Config } from '../core/Config.js';
 import { Classes } from '../core/Classes.js';
+import { initialStats, STAT_POINTS_PER_LEVEL } from '../core/Stats.js';
 
 export class Player {
   constructor(x, y, classId = 'mage') {
@@ -26,6 +27,15 @@ export class Player {
     this.speedMult = 1;
     this.atkSpeedMult = s.atkSpeedMult;
     this.regen = 0;
+    this.critBonus = 0;
+
+    // Sistema de stats RPG: puntos sin gastar + capa reversible.
+    // classBase guarda los valores base de la clase para que el menú
+    // de stats pueda mostrar la diferencia limpia respecto a esa base.
+    this.stats = initialStats();
+    this.statPointsAvailable = 0;
+    this.classBase = { hp: s.hp, dmgMult: s.dmgMult, atkSpeedMult: s.atkSpeedMult };
+    this._statLayer = null;
 
     this.weapons = [{ ...cls.weapon }];
 
@@ -77,6 +87,8 @@ export class Player {
       this.xp -= this.xpNext;
       this.level++;
       this.xpNext = Math.floor(this.xpNext * Config.xp.growth + Config.xp.add);
+      // los puntos se acumulan acá; el menú de stats se abre desde Game
+      this.statPointsAvailable += STAT_POINTS_PER_LEVEL;
       onLevelUp && onLevelUp();
     }
   }

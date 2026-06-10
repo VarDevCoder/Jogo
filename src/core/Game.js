@@ -13,12 +13,13 @@ import { Background } from '../fx/Background.js';
 import { Particle } from '../entities/Particle.js';
 
 export class Game {
-  constructor({ renderer, input, hud, upgradeMenu, menus, audio, save, onGameOver, classId, debug }) {
+  constructor({ renderer, input, hud, upgradeMenu, menus, statsMenu, audio, save, onGameOver, classId, debug }) {
     this.renderer = renderer;
     this.input = input;
     this.hud = hud;
     this.upgradeMenu = upgradeMenu;
     this.menus = menus;
+    this.statsMenu = statsMenu || null;
     this.audio = audio;
     this.save = save;
     this.onGameOver = onGameOver;
@@ -263,9 +264,24 @@ export class Game {
       if (this._pendingLevels > 0) {
         this._showLevelMenu();
       } else {
-        this._levelMenuOpen = false;
-        this.loop.resume();
+        // todas las cartas elegidas: si quedan puntos de stat, abrir menú
+        this._afterAllLevelMenus();
       }
     });
+  }
+
+  // Tras procesar todos los niveles pendientes y sus cartas, si el jugador
+  // tiene puntos de stat sin gastar, mostrar el menú de stats antes de
+  // reanudar la partida. Si no hay menú de stats o no hay puntos, sigue normal.
+  _afterAllLevelMenus() {
+    if (this.statsMenu && this.player.statPointsAvailable > 0) {
+      this.statsMenu.show(this.player, () => {
+        this._levelMenuOpen = false;
+        this.loop.resume();
+      });
+    } else {
+      this._levelMenuOpen = false;
+      this.loop.resume();
+    }
   }
 }

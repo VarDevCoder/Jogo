@@ -7,6 +7,7 @@ import { Joystick } from './ui/Joystick.js';
 import { HUD } from './ui/HUD.js';
 import { UpgradeMenu } from './ui/UpgradeMenu.js';
 import { Menus } from './ui/Menus.js';
+import { StatsMenu } from './ui/StatsMenu.js';
 import { DebugOverlay } from './debug/DebugOverlay.js';
 import { CheatMenu } from './debug/CheatMenu.js';
 
@@ -25,13 +26,14 @@ function bootstrap() {
   const hud = new HUD();
   const upgradeMenu = new UpgradeMenu(overlay);
   const menus = new Menus(overlay, { save, audio });
+  const statsMenu = new StatsMenu(overlay, audio);
 
   let game = null;
 
   function startRun(classId) {
     const debug = new DebugOverlay();
     game = new Game({
-      renderer, input, hud, upgradeMenu, menus, audio, save, classId, debug,
+      renderer, input, hud, upgradeMenu, menus, statsMenu, audio, save, classId, debug,
       onGameOver: (stats) => {
         const records = save.recordRun(stats);
         menus.showGameOver(stats, records, {
