@@ -59,20 +59,102 @@ html, body {
 #overlay h2 { font-size: 20px; margin-bottom: 16px; color: #fff; text-align: center; }
 #overlay p { color: #ccc; margin-bottom: 20px; text-align: center; max-width: 480px; font-size: 14px; line-height: 1.5; }
 
-.upgrades { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 420px; }
-.upgrade {
-  background: #2a1a35;
-  border: 2px solid #5fffaf;
-  border-radius: 10px;
-  padding: 14px 16px;
+.cards {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+  max-width: 640px;
+  justify-content: center;
+  flex-wrap: wrap;
+  perspective: 800px;
+}
+.card {
+  flex: 1 1 160px;
+  max-width: 200px;
+  min-height: 210px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-start;
+  gap: 8px;
+  padding: 14px 12px;
+  border-radius: 14px;
   cursor: pointer;
   color: #fff;
-  text-align: left;
-  transition: transform .1s, background .1s;
+  text-align: center;
+  font-family: inherit;
+  background: linear-gradient(160deg, #241433, #160b22);
+  border: 2px solid #555;
+  position: relative;
+  overflow: hidden;
+  animation: cardDeal .4s cubic-bezier(.2, 1.4, .4, 1) backwards;
+  transition: transform .12s, box-shadow .12s;
 }
-.upgrade:hover, .upgrade:active { background: #3d2750; transform: scale(1.02); }
-.upgrade b { color: #5fffaf; display: block; margin-bottom: 4px; font-size: 16px; }
-.upgrade span { font-size: 13px; color: #bbb; }
+.card:hover, .card:active { transform: translateY(-6px) scale(1.03); }
+@keyframes cardDeal {
+  from { opacity: 0; transform: translateY(40px) rotateX(35deg); }
+  to   { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
+.cardRarity {
+  font-size: 10px; font-weight: 800;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 3px 10px; border-radius: 20px;
+  border: 1px solid currentColor;
+}
+.cardIcon { font-size: 34px; line-height: 1.2; margin-top: 4px; }
+.cardName { font-size: 15px; font-weight: 800; }
+.cardDesc { font-size: 12px; color: #c8c2d4; line-height: 1.4; }
+
+/* Gris: Muy Común */
+.card.r-comun { border-color: #9aa0ae; }
+.card.r-comun .cardRarity { color: #9aa0ae; }
+.card.r-comun .cardName { color: #d4d8e0; }
+
+/* Verde: Poco Común */
+.card.r-pocoComun { border-color: #5fffaf; box-shadow: 0 0 12px rgba(95,255,175,.18); }
+.card.r-pocoComun .cardRarity { color: #5fffaf; }
+.card.r-pocoComun .cardName { color: #5fffaf; }
+
+/* Azul: Raro */
+.card.r-raro { border-color: #4da6ff; box-shadow: 0 0 16px rgba(77,166,255,.3); }
+.card.r-raro .cardRarity { color: #4da6ff; }
+.card.r-raro .cardName { color: #8cc6ff; }
+
+/* Lila: Ultra Raro */
+.card.r-ultraRaro {
+  border-color: #c77dff;
+  box-shadow: 0 0 22px rgba(199,125,255,.45);
+  background: linear-gradient(160deg, #321a4a, #1c0e2e);
+}
+.card.r-ultraRaro .cardRarity { color: #c77dff; }
+.card.r-ultraRaro .cardName { color: #ddb3ff; }
+
+/* Dorado: Jackpot */
+.card.r-jackpot {
+  border-color: #ffd86b;
+  box-shadow: 0 0 30px rgba(255,216,107,.55);
+  background: linear-gradient(160deg, #4a3614, #241404);
+  animation: cardDeal .4s cubic-bezier(.2, 1.4, .4, 1) backwards,
+             jackpotPulse 1.6s ease-in-out infinite;
+}
+.card.r-jackpot .cardRarity { color: #ffd86b; }
+.card.r-jackpot .cardName { color: #ffe9a0; text-shadow: 0 0 10px rgba(255,216,107,.6); }
+.card.r-jackpot .cardDesc { color: #e8d8b0; }
+.card.r-jackpot::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255,240,190,.35) 50%, transparent 65%);
+  transform: translateX(-100%);
+  animation: jackpotShine 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes jackpotPulse {
+  0%, 100% { box-shadow: 0 0 22px rgba(255,216,107,.4); }
+  50%      { box-shadow: 0 0 38px rgba(255,216,107,.75); }
+}
+@keyframes jackpotShine {
+  0%   { transform: translateX(-100%); }
+  55%, 100% { transform: translateX(100%); }
+}
 
 button.big {
   background: #5fffaf; color: #000;
