@@ -7,6 +7,7 @@ export class SpawnSystem {
     this.timer = 0;
     this.bossTimer = Config.bosses.interval;
     this.bossIndex = 0;
+    this.hordeTimer = 45;
   }
 
   update(dt) {
@@ -25,6 +26,36 @@ export class SpawnSystem {
       this.spawnBoss();
       this.bossTimer = Config.bosses.interval;
     }
+
+    this.hordeTimer -= dt;
+    if (this.hordeTimer <= 0) {
+      this.spawnHorde();
+      this.hordeTimer = 45;
+    }
+  }
+
+  // Evento de horda: un anillo de slimes débiles y rápidos rodea al jugador.
+  spawnHorde() {
+    const count = 16 + Math.min(16, Math.floor(this.game.time / 60) * 4);
+    const def = Config.enemies[0];
+    const hpScale = Math.max(0.5, (1 + this.game.time / 90) * 0.5);
+    const dist = 620;
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2;
+      this.game.enemies.push(new Enemy({
+        x: this.game.player.x + Math.cos(a) * dist,
+        y: this.game.player.y + Math.sin(a) * dist,
+        hp: def.hp * hpScale,
+        dmg: def.dmg,
+        speed: def.speed * 1.6,
+        radius: def.radius * 0.85,
+        color: def.color,
+        xp: 1,
+        sprite: def.sprite,
+      }));
+    }
+    if (this.game.audio) this.game.audio.horde();
+    this.game.flash = Math.max(this.game.flash, 0.15);
   }
 
   spawn() {
@@ -79,5 +110,6 @@ export class SpawnSystem {
 
     this.game.shake.add(Config.fx.shakeOnBossSpawn);
     this.game.flash = Math.max(this.game.flash, 0.25);
+    if (this.game.audio) this.game.audio.bossSpawn();
   }
 }

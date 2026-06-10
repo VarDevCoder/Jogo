@@ -1,6 +1,7 @@
 import { Config, Palette } from './Config.js';
 import { GameLoop } from './GameLoop.js';
 import { Player } from '../entities/Player.js';
+import { applyMeta } from './MetaUpgrades.js';
 import { SpawnSystem } from '../systems/SpawnSystem.js';
 import { CombatSystem } from '../systems/CombatSystem.js';
 import { PhysicsSystem } from '../systems/PhysicsSystem.js';
@@ -12,27 +13,36 @@ import { Background } from '../fx/Background.js';
 import { Particle } from '../entities/Particle.js';
 
 export class Game {
-  constructor({ renderer, input, hud, upgradeMenu, onGameOver, classId }) {
+  constructor({ renderer, input, hud, upgradeMenu, menus, audio, save, onGameOver, classId }) {
     this.renderer = renderer;
     this.input = input;
     this.hud = hud;
     this.upgradeMenu = upgradeMenu;
+    this.menus = menus;
+    this.audio = audio;
+    this.save = save;
     this.onGameOver = onGameOver;
 
     this.background = new Background();
     this.renderer.background = this.background;
 
     this.player = new Player(0, 0, classId);
+    this.player.gold = 0;
+    if (save) applyMeta(this.player, save.data.meta);
+
     this.enemies = [];
     this.bullets = [];
     this.gems = [];
+    this.chests = [];
+    this.pickups = [];
     this.particles = [];
     this.damageNumbers = [];
     this.time = 0;
     this.cam = { x: 0, y: 0 };
     this.over = false;
+    this.paused = false;
     this.flash = 0;
-    this._wasPlayerHpFull = true;
+    this.magnetT = 0;
 
     this.shake = new ScreenShake();
     this.hitStop = new HitStop();
@@ -50,11 +60,31 @@ export class Game {
   pause() { this.loop.pause(); }
   resume() { this.loop.resume(); }
 
+  togglePause() {
+    if (this.over) return;
+    if (this.paused) {
+      this.paused = false;
+      this.menus.hide();
+      this.loop.resume();
+    } else if (this.loop.running) {
+      this.paused = true;
+      this.loop.pause();
+      this.menus.showPause({
+        onResume: () => this.togglePause(),
+        onQuit: () => {
+          this.paused = false;
+          this._endRun();
+        },
+      });
+    }
+  }
+
   update(dt) {
     this.dust.update(dt);
     this.renderer.tick(dt);
     this.shake.update(dt);
     this.flash = Math.max(0, this.flash - dt * 3);
+    this.magnetT = Math.max(0, this.magnetT - dt);
 
     if (this.hitStop.consume(dt)) {
       this._updateDamageNumbers(dt);
@@ -76,10 +106,12 @@ export class Game {
     this.spawnSystem.update(dt);
     this.physicsSystem.update(dt);
     this.combatSystem.update(dt);
+    this._tickLoot(dt);
 
     if (this.player.hp < wasHp) {
       this.shake.add(Config.fx.shakeOnPlayerHit);
       this.flash = 0.35;
+      if (this.audio) this.audio.hurt();
     }
 
     for (let i = this.particles.length - 1; i >= 0; i--) {
@@ -94,10 +126,60 @@ export class Game {
     this.hud.update(this.player, this.time);
 
     if (this.player.hp <= 0 && !this.over) {
-      this.over = true;
-      this.loop.pause();
-      this.onGameOver({ time: this.time, level: this.player.level, kills: this.player.kills });
+      this._endRun();
     }
+  }
+
+  _endRun() {
+    this.over = true;
+    this.loop.pause();
+    if (this.audio) this.audio.gameover();
+    this.onGameOver({
+      time: this.time,
+      level: this.player.level,
+      kills: this.player.kills,
+      gold: this.player.gold,
+      classId: this.player.classId,
+    });
+  }
+
+  _tickLoot(dt) {
+    const p = this.player;
+
+    for (let i = this.chests.length - 1; i >= 0; i--) {
+      const c = this.chests[i];
+      c.t += dt;
+      if (Math.hypot(p.x - c.x, p.y - c.y) < p.r + c.r + 8) {
+        this.chests.splice(i, 1);
+        this._openChest();
+      }
+    }
+
+    for (let i = this.pickups.length - 1; i >= 0; i--) {
+      const it = this.pickups[i];
+      it.t += dt;
+      if (Math.hypot(p.x - it.x, p.y - it.y) < p.r + it.r + 6) {
+        this.pickups.splice(i, 1);
+        if (it.type === 'magnet') {
+          this.magnetT = 3;
+          if (this.audio) this.audio.magnet();
+        }
+      }
+    }
+  }
+
+  // Cofre del jefe: revelación tipo tragamonedas con carta + oro.
+  _openChest() {
+    this.loop.pause();
+    if (this.audio) this.audio.chestOpen();
+    const card = this.upgradeSystem.rollChest();
+    const gold = Math.round((25 + this.player.level * 3 + Math.random() * 50) * (this.player.greed || 1));
+    this.menus.showChest(card, gold, () => {
+      this.upgradeSystem.apply(card);
+      this.player.gold += gold;
+      if (this.audio) this.audio.cardPick(card.rarity.id === 'jackpot');
+      this.loop.resume();
+    }, this.audio);
   }
 
   _updateDamageNumbers(dt) {
@@ -119,6 +201,8 @@ export class Game {
 
     for (const p of this.particles) r.drawParticle(p, this.cam);
     for (const g of this.gems) r.drawGem(g, this.cam);
+    for (const c of this.chests) r.drawChest(c, this.cam);
+    for (const it of this.pickups) r.drawPickup(it, this.cam);
     for (const e of this.enemies) r.drawEnemy(e, this.cam);
     for (const b of this.bullets) r.drawBullet(b, this.cam);
     r.drawPlayer(this.player, this.cam);
@@ -134,6 +218,10 @@ export class Game {
 
   onLevelUp() {
     this.loop.pause();
+    if (this.audio) {
+      this.audio.levelup();
+      this.audio.cardsDeal();
+    }
     for (let k = 0; k < 30; k++) {
       this.particles.push(new Particle(
         this.player.x, this.player.y,
@@ -145,8 +233,9 @@ export class Game {
     this.flash = 0.5;
 
     const choices = this.upgradeSystem.roll(3);
-    this.upgradeMenu.show(this.player.level, choices, (upgrade) => {
-      this.upgradeSystem.apply(upgrade);
+    this.upgradeMenu.show(this.player.level, choices, (card) => {
+      this.upgradeSystem.apply(card);
+      if (this.audio) this.audio.cardPick(card.rarity.id === 'jackpot');
       this.loop.resume();
     });
   }

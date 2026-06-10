@@ -14,7 +14,7 @@ export class CombatSystem {
   }
 
   _tickWeapons(dt) {
-    const { player } = this.game;
+    const { player, audio } = this.game;
     for (const w of player.weapons) {
       w.cdT -= dt;
       if (w.cdT <= 0) {
@@ -23,6 +23,7 @@ export class CombatSystem {
         else if (w.type === 'area')  this._fireArea(w);
         else if (w.type === 'arrow') this._fireArrows(w);
         else if (w.type === 'slash') this._fireSlash(w);
+        if (audio) audio.shoot(w.type);
       }
     }
   }
@@ -128,6 +129,7 @@ export class CombatSystem {
         e.takeDamage(dmg);
         damageNumbers.push(new DamageNumber(e.x, e.y - e.r, dmg, crit));
         if (crit) shake.add(Config.fx.shakeOnCrit);
+        if (this.game.audio) this.game.audio.hit(crit);
 
         for (let k = 0; k < 4; k++) {
           particles.push(new Particle(
@@ -155,11 +157,23 @@ export class CombatSystem {
               const dist = e.r * 0.5 + Math.random() * 40;
               gems.push(new Gem(e.x + Math.cos(a) * dist, e.y + Math.sin(a) * dist, e.xp));
             }
+            // los jefes siempre dejan un cofre del tesoro
+            this.game.chests.push({ x: e.x, y: e.y, r: 18, t: 0 });
             hitStop.freeze(Config.fx.hitStopOnLevelUp);
             shake.add(Config.fx.shakeOnBossKill);
             this.game.flash = Math.max(this.game.flash, 0.4);
+            if (this.game.audio) this.game.audio.bossDeath();
           } else {
             gems.push(new Gem(e.x, e.y, e.xp));
+            // botín: monedas de oro y, muy raramente, un imán
+            if (Math.random() < 0.3) {
+              const amount = Math.max(1, Math.round((1 + this.game.time / 90) * (player.greed || 1)));
+              gems.push(new Gem(e.x + 10, e.y + 6, 0, amount));
+            }
+            if (Math.random() < 0.005) {
+              this.game.pickups.push({ type: 'magnet', x: e.x, y: e.y, r: 14, t: 0 });
+            }
+            if (this.game.audio) this.game.audio.kill();
           }
           enemies.splice(j, 1);
           player.kills++;
@@ -172,14 +186,23 @@ export class CombatSystem {
   }
 
   _tickGems(dt) {
-    const { gems, player } = this.game;
+    const { gems, player, audio } = this.game;
+    const magnetActive = this.game.magnetT > 0;
     for (let i = gems.length - 1; i >= 0; i--) {
       const g = gems[i];
       const d = Math.hypot(player.x - g.x, player.y - g.y);
-      if (d < player.pickupRange) g.attractTo(player.x, player.y, dt);
+      if (magnetActive || d < player.pickupRange) {
+        g.attractTo(player.x, player.y, dt, magnetActive ? 1000 : 400);
+      }
       if (d < player.r + g.r) {
         gems.splice(i, 1);
-        player.addXp(g.xp, () => this.game.onLevelUp());
+        if (g.gold) {
+          player.gold += g.gold;
+          if (audio) audio.coin();
+        } else {
+          if (audio) audio.gem();
+          player.addXp(g.xp, () => this.game.onLevelUp());
+        }
       }
     }
   }

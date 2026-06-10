@@ -36,13 +36,25 @@ export const Rarities = {
   },
 };
 
-const TOTAL_WEIGHT = Object.values(Rarities).reduce((s, r) => s + r.weight, 0);
+// La suerte (meta-progresión y cofres) desplaza peso desde lo común
+// hacia las rarezas altas.
+export function weightsFor(luck = 0) {
+  return {
+    comun: Math.max(8, Rarities.comun.weight - luck * 5),
+    pocoComun: Rarities.pocoComun.weight,
+    raro: Rarities.raro.weight + luck * 2,
+    ultraRaro: Rarities.ultraRaro.weight + luck * 1.6,
+    jackpot: Rarities.jackpot.weight + luck * 0.8,
+  };
+}
 
-export function rollRarity(rng = Math.random) {
-  let roll = rng() * TOTAL_WEIGHT;
-  for (const r of Object.values(Rarities)) {
-    roll -= r.weight;
-    if (roll < 0) return r;
+export function rollRarity(luck = 0, rng = Math.random) {
+  const weights = weightsFor(luck);
+  const total = Object.values(weights).reduce((s, w) => s + w, 0);
+  let roll = rng() * total;
+  for (const [id, w] of Object.entries(weights)) {
+    roll -= w;
+    if (roll < 0) return Rarities[id];
   }
   return Rarities.comun;
 }

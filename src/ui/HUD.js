@@ -4,6 +4,7 @@ export class HUD {
     this.lvlEl = document.getElementById('lvl');
     this.killsEl = document.getElementById('kills');
     this.timeEl = document.getElementById('time');
+    this.goldEl = document.getElementById('gold');
     this.xpfill = document.getElementById('xpfill');
   }
 
@@ -11,6 +12,7 @@ export class HUD {
     this.hpEl.textContent = Math.ceil(player.hp);
     this.lvlEl.textContent = player.level;
     this.killsEl.textContent = player.kills;
+    this.goldEl.textContent = player.gold || 0;
     const m = Math.floor(time / 60);
     const s = Math.floor(time % 60);
     this.timeEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;

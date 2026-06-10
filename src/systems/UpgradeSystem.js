@@ -133,8 +133,9 @@ export class UpgradeSystem {
     this.takenUniques = new Set();
   }
 
-  roll(count = 3) {
+  roll(count = 3, luckBonus = 0) {
     const classId = this.game.player.classId;
+    const luck = (this.game.player.luck || 0) + luckBonus;
     const pool = [...(POOLS[classId] || POOLS.mage)].sort(() => Math.random() - 0.5);
     const uniques = (UNIQUES[classId] || [])
       .filter(u => !this.takenUniques.has(u.id))
@@ -142,7 +143,7 @@ export class UpgradeSystem {
 
     const cards = [];
     for (let i = 0; i < count; i++) {
-      let rarity = rollRarity();
+      let rarity = rollRarity(luck);
 
       if (rarity.id === 'jackpot' && uniques.length > 0) {
         const u = uniques.pop();
@@ -173,6 +174,16 @@ export class UpgradeSystem {
       });
     }
     return cards;
+  }
+
+  // Carta de cofre: una sola, con suerte muy aumentada y nunca gris.
+  rollChest() {
+    const card = this.roll(1, 6)[0];
+    if (card.rarity.id === 'comun') {
+      const better = this.roll(1, 6)[0];
+      return better.rarity.id === 'comun' ? card : better;
+    }
+    return card;
   }
 
   apply(card) {

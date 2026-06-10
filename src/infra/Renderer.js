@@ -106,6 +106,29 @@ export class Renderer {
   drawGem(g, cam) {
     const ctx = this.ctx;
     const x = g.x - cam.x, y = g.y - cam.y;
+
+    // moneda de oro giratoria
+    if (g.gold) {
+      const spin = Math.abs(Math.cos(this.time * 5 + g.x * 0.1));
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, g.r * 2.4);
+      glow.addColorStop(0, 'rgba(255, 216, 107, 0.5)');
+      glow.addColorStop(1, 'rgba(255, 216, 107, 0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - g.r * 2.4, y - g.r * 2.4, g.r * 4.8, g.r * 4.8);
+      ctx.restore();
+      ctx.fillStyle = '#d4a73a';
+      ctx.beginPath();
+      ctx.ellipse(x, y, g.r * Math.max(0.25, spin), g.r, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffe9a0';
+      ctx.beginPath();
+      ctx.ellipse(x, y, g.r * Math.max(0.15, spin) * 0.6, g.r * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
     const pulse = 1 + 0.15 * Math.sin(this.time * 6);
     const r = g.r * pulse;
     const color = g.xp >= 4 ? Palette.gold : g.xp >= 2 ? Palette.teal : Palette.tealSoft;
@@ -135,6 +158,89 @@ export class Renderer {
     ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.25, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
+  }
+
+  drawChest(c, cam) {
+    const ctx = this.ctx;
+    const x = c.x - cam.x;
+    const bounce = Math.abs(Math.sin(c.t * 3)) * 5;
+    const y = c.y - cam.y - bounce;
+    const r = c.r;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const pulse = 0.4 + 0.25 * Math.sin(this.time * 4);
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
+    glow.addColorStop(0, `rgba(255, 216, 107, ${pulse})`);
+    glow.addColorStop(1, 'rgba(255, 216, 107, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6);
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath();
+    ctx.ellipse(x, c.y - cam.y + r * 0.8, r * 1.1, r * 0.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // cuerpo
+    ctx.fillStyle = '#6e4a24';
+    ctx.fillRect(x - r, y - r * 0.3, r * 2, r * 1.1);
+    // tapa
+    ctx.fillStyle = '#8a5e30';
+    ctx.beginPath();
+    ctx.moveTo(x - r, y - r * 0.3);
+    ctx.quadraticCurveTo(x, y - r * 1.1, x + r, y - r * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    // bandas doradas
+    ctx.fillStyle = '#ffd86b';
+    ctx.fillRect(x - r, y - r * 0.35, r * 2, r * 0.14);
+    ctx.fillRect(x - r * 0.12, y - r * 0.3, r * 0.24, r * 1.1);
+    // cerradura
+    ctx.fillStyle = '#ffe9a0';
+    ctx.beginPath();
+    ctx.arc(x, y + r * 0.15, r * 0.18, 0, Math.PI * 2);
+    ctx.fill();
+    // contorno
+    ctx.strokeStyle = 'rgba(10,4,24,0.55)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x - r, y - r * 0.3, r * 2, r * 1.1);
+  }
+
+  drawPickup(it, cam) {
+    const ctx = this.ctx;
+    const x = it.x - cam.x;
+    const y = it.y - cam.y + Math.sin(it.t * 3) * 4;
+    const r = it.r;
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, r * 2.6);
+    glow.addColorStop(0, 'rgba(110, 231, 255, 0.5)');
+    glow.addColorStop(1, 'rgba(110, 231, 255, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(x - r * 2.6, y - r * 2.6, r * 5.2, r * 5.2);
+    ctx.restore();
+
+    if (it.type === 'magnet') {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#d84444';
+      ctx.lineWidth = r * 0.45;
+      ctx.beginPath();
+      ctx.arc(0, -r * 0.1, r * 0.6, Math.PI, Math.PI * 2);
+      ctx.stroke();
+      ctx.strokeStyle = '#eef0f4';
+      ctx.lineWidth = r * 0.45;
+      ctx.beginPath();
+      ctx.moveTo(-r * 0.6, -r * 0.1);
+      ctx.lineTo(-r * 0.6, r * 0.45);
+      ctx.moveTo(r * 0.6, -r * 0.1);
+      ctx.lineTo(r * 0.6, r * 0.45);
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   drawEnemy(e, cam) {
