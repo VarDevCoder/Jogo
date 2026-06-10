@@ -53,6 +53,10 @@ function bootstrap() {
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && game && !game.over) game.togglePause();
   });
+  // auto-pausa al cambiar de pestaña
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && game && !game.over && !game.paused) game.togglePause();
+  });
   const pauseBtn = document.getElementById('pauseBtn');
   pauseBtn.onclick = () => {
     if (game && !game.over) game.togglePause();

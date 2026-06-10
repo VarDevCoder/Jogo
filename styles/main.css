@@ -40,6 +40,29 @@ html, body {
   background: linear-gradient(to right, #6ee7ff, #5fffaf);
   transition: width .2s;
 }
+#xpbar.almost #xpfill {
+  animation: xpPulse .7s ease-in-out infinite;
+}
+@keyframes xpPulse {
+  0%, 100% { box-shadow: 0 0 4px rgba(95,255,175,.4); filter: brightness(1); }
+  50%      { box-shadow: 0 0 14px rgba(95,255,175,.9); filter: brightness(1.4); }
+}
+
+#announce {
+  position: absolute; top: 22%; left: 0; right: 0;
+  text-align: center;
+  font-size: 30px; font-weight: 900; letter-spacing: 3px;
+  text-shadow: 0 2px 12px rgba(0,0,0,.8);
+  opacity: 0;
+  pointer-events: none;
+}
+#announce.show { animation: announceIn 2.4s ease-out forwards; }
+@keyframes announceIn {
+  0%   { opacity: 0; transform: scale(1.6); }
+  12%  { opacity: 1; transform: scale(1); }
+  80%  { opacity: 1; }
+  100% { opacity: 0; transform: scale(.95); }
+}
 
 #joystick {
   position: absolute; left: 24px; bottom: 24px;
@@ -228,6 +251,10 @@ button.big:active { transform: scale(.97); }
   50%      { filter: drop-shadow(0 0 26px rgba(255, 216, 107, .65)); }
 }
 .tagline { font-style: italic; }
+#titleParade {
+  width: min(640px, 92vw); height: 110px;
+  margin: -6px 0;
+}
 .records {
   display: flex; gap: 18px; font-size: 13px; color: #999;
   margin-bottom: 12px; flex-wrap: wrap; justify-content: center;

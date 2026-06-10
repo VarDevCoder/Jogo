@@ -57,6 +57,7 @@ export class Menus {
           <span class="logoBottom">HORDAS DE MEDIANOCHE</span>
         </div>
         <p class="tagline">Sobrevive a la horda. Roba cartas. Conviértete en leyenda.</p>
+        <canvas id="titleParade" width="640" height="110"></canvas>
         ${records}
         <div class="menuButtons">
           <button class="big" id="playBtn">⚔️ Jugar</button>
@@ -68,6 +69,31 @@ export class Menus {
     this._btn('#playBtn', onPlay);
     this._btn('#shopBtn', onShop);
     this._btn('#optBtn', onOptions);
+
+    // desfile de bichos cruzando bajo el logo
+    const cv = this.overlay.querySelector('#titleParade');
+    if (cv) {
+      const ctx = cv.getContext('2d');
+      const parade = [
+        { sprite: 'slime', r: 18, speed: 55, off: 0 },
+        { sprite: 'goblin', r: 17, speed: 75, off: 160 },
+        { sprite: 'orc', r: 22, speed: 48, off: 320 },
+        { sprite: 'minotaur', r: 26, speed: 42, off: 480 },
+        { sprite: 'slime', r: 13, speed: 90, off: 600 },
+      ];
+      const start = performance.now();
+      const tick = () => {
+        const t = (performance.now() - start) / 1000;
+        ctx.clearRect(0, 0, cv.width, cv.height);
+        for (const p of parade) {
+          const x = ((p.off + t * p.speed) % (cv.width + 120)) - 60;
+          const fn = Sprites[p.sprite];
+          if (fn) fn(ctx, x, 62, p.r, { time: t + p.off, facing: 1 });
+        }
+        this._anim = requestAnimationFrame(tick);
+      };
+      tick();
+    }
   }
 
   // ---------- Selección de clase con sprites animados ----------

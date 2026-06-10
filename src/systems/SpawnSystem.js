@@ -17,7 +17,7 @@ export class SpawnSystem {
       Config.spawn.maxRate - this.game.time / Config.spawn.rampSeconds
     );
     if (this.timer <= 0) {
-      this.spawn();
+      if (this.game.enemies.length < 350) this.spawn();
       this.timer = rate;
     }
 
@@ -55,6 +55,7 @@ export class SpawnSystem {
       }));
     }
     if (this.game.audio) this.game.audio.horde();
+    if (this.game.hud.announce) this.game.hud.announce('⚠️ ¡HORDA A LA VISTA! ⚠️', '#c77dff');
     this.game.flash = Math.max(this.game.flash, 0.15);
   }
 
@@ -111,5 +112,6 @@ export class SpawnSystem {
     this.game.shake.add(Config.fx.shakeOnBossSpawn);
     this.game.flash = Math.max(this.game.flash, 0.25);
     if (this.game.audio) this.game.audio.bossSpawn();
+    if (this.game.hud.announce) this.game.hud.announce(`☠️ ${def.name.toUpperCase()} ☠️`, '#ff4d4d');
   }
 }
