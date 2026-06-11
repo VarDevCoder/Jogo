@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Demo — guerrero (character-pipeline)</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #14091f; }
+    #hint {
+      position: fixed; bottom: 12px; left: 0; right: 0;
+      text-align: center; color: #c9bfdd;
+      font: 14px system-ui, sans-serif;
+    }
+    #hint b { color: #ffd86b; }
+  </style>
+</head>
+<body>
+<div id="hint">
+  <b>←/→</b> caminar · <b>ESPACIO</b> saltar · <b>X</b> atacar · sin input = idle
+</div>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+<script>
+const CHARACTER = 'guerrero';
+const SIZE = 256;
+const BASE = `../output/${CHARACTER}_${SIZE}`;
+
+class DemoScene extends Phaser.Scene {
+  preload() {
+    this.load.atlas(CHARACTER, `${BASE}.png`, `${BASE}.json`);
+    // el atlas también se carga como JSON puro para leer meta.animations
+    // (frames, fps y loop por animación) sin duplicar datos en la demo
+    this.load.json(`${CHARACTER}_meta`, `${BASE}.json`);
+  }
+
+  create() {
+    const meta = this.cache.json.get(`${CHARACTER}_meta`).meta.animations;
+
+    // registra todas las animaciones del atlas dinámicamente
+    for (const [name, info] of Object.entries(meta)) {
+      this.anims.create({
+        key: name,
+        frames: this.anims.generateFrameNames(CHARACTER, {
+          prefix: `${name}_`, start: 0, end: info.frames - 1,
+        }),
+        frameRate: info.fps,
+        repeat: info.loop ? -1 : 0,
+      });
+    }
+
+    const { width, height } = this.scale;
+    this.groundY = height * 0.62;
+    this.player = this.add.sprite(width / 2, this.groundY, CHARACTER)
+      .setScale(1.4);
+    this.player.play('idle');
+
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.keyX = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+    this.busy = false; // bloqueado mientras dura jump/attack
+
+    // al terminar una animación no-loop se vuelve a idle
+    this.player.on('animationcomplete', (anim) => {
+      if (!meta[anim.key]?.loop) {
+        this.busy = false;
+        this.player.play('idle');
+      }
+    });
+
+    this.add.text(16, 14,
+      `atlas: ${CHARACTER}_${SIZE} · ${Object.keys(meta).length} animaciones`,
+      { font: '13px monospace', color: '#7a6f94' });
+  }
+
+  update() {
+    const p = this.player;
+
+    if (this.busy) return;
+
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.space)) {
+      this.busy = true;
+      p.play('jump');
+      return;
+    }
+    if (Phaser.Input.Keyboard.JustDown(this.keyX)) {
+      this.busy = true;
+      p.play('attack');
+      return;
+    }
+
+    const left = this.cursors.left.isDown;
+    const right = this.cursors.right.isDown;
+    if (left || right) {
+      p.setFlipX(left);              // el rig mira a +x; izquierda = espejo
+      p.x += (left ? -1 : 1) * 2.6;
+      p.x = Phaser.Math.Clamp(p.x, 60, this.scale.width - 60);
+      if (p.anims.currentAnim?.key !== 'walk') p.play('walk');
+    } else if (p.anims.currentAnim?.key !== 'idle') {
+      p.play('idle');
+    }
+  }
+}
+
+new Phaser.Game({
+  type: Phaser.AUTO,
+  width: window.innerWidth,
+  height: window.innerHeight,
+  backgroundColor: '#14091f',
+  pixelArt: false,
+  scene: DemoScene,
+  scale: { mode: Phaser.Scale.RESIZE },
+});
+</script>
+</body>
+</html>
