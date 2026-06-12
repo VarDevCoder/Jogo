@@ -11,6 +11,7 @@ import { HitStop } from '../fx/HitStop.js';
 import { AmbientDust } from '../fx/AmbientDust.js';
 import { Background } from '../fx/Background.js';
 import { Particle } from '../entities/Particle.js';
+import { Profiler } from '../debug/Profiler.js';
 
 export class Game {
   constructor({ renderer, input, hud, upgradeMenu, menus, statsMenu, audio, save, onGameOver, classId, debug }) {
