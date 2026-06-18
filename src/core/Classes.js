@@ -8,16 +8,18 @@ export const Classes = {
     innerColor: '#fff3c4',
     stats: { hp: 100, speed: 180, pickupRange: 60, dmgMult: 1.0, atkSpeedMult: 1.0 },
     weapon: { type: 'orb', dmg: 12, cd: 0.6, range: 180, count: 1, cdT: 0 },
+    ulti: 'mage_laser',
   },
   ranger: {
     id: 'ranger',
-    name: 'Ranger',
+    name: 'Arquero',
     desc: 'Dispara 3 flechas en arco hacia el frente. Rápido y frágil.',
     sprite: 'ranger',
     color: '#5fffaf',
     innerColor: '#c5ffe5',
     stats: { hp: 75, speed: 220, pickupRange: 80, dmgMult: 0.85, atkSpeedMult: 1.15 },
     weapon: { type: 'arrow', dmg: 9, cd: 0.45, range: 320, count: 3, spread: 0.35, cdT: 0 },
+    ulti: 'ranger_arrowRain',
   },
   melee: {
     id: 'melee',
@@ -28,7 +30,30 @@ export const Classes = {
     innerColor: '#e0e6f0',
     stats: { hp: 160, speed: 150, pickupRange: 55, dmgMult: 1.15, atkSpeedMult: 0.9 },
     weapon: { type: 'slash', dmg: 22, cd: 0.7, range: 95, cdT: 0 },
+    ulti: 'melee_whirlwind',
+  },
+  alchemist: {
+    id: 'alchemist',
+    name: 'Alquimista',
+    desc: 'Lanza pociones explosivas que dejan charcos tóxicos.',
+    sprite: 'wizard',
+    color: '#9fffaf',
+    innerColor: '#dfffd6',
+    stats: { hp: 110, speed: 175, pickupRange: 70, dmgMult: 0.95, atkSpeedMult: 1.0 },
+    weapon: { type: 'orb', dmg: 11, cd: 0.65, range: 200, count: 1, cdT: 0 },
+    ulti: 'alchemist_inferno',
+  },
+  alchemist: {
+    id: 'alchemist',
+    name: 'Alquimista',
+    desc: 'Lanza frascos volátiles que explotan en área. Caos químico a distancia.',
+    sprite: 'alchemist',
+    color: '#5fd38a',
+    innerColor: '#c9f5d9',
+    stats: { hp: 90, speed: 190, pickupRange: 70, dmgMult: 1.05, atkSpeedMult: 0.95 },
+    weapon: { type: 'potion', dmg: 18, cd: 1.0, range: 280, splash: 70, count: 1, cdT: 0 },
+    unlock: { cost: 250 },
   },
 };
 
-export const CLASS_ORDER = ['mage', 'ranger', 'melee'];
+export const CLASS_ORDER = ['mage', 'ranger', 'melee', 'alchemist'];

@@ -1,14 +1,15 @@
 export class Gem {
-  constructor(x, y, xp) {
+  constructor(x, y, xp, gold = 0) {
     this.x = x; this.y = y;
     this.xp = xp;
-    this.r = 6;
+    this.gold = gold;
+    this.r = gold ? 7 : 6;
   }
 
-  attractTo(targetX, targetY, dt) {
+  attractTo(targetX, targetY, dt, speed = 400) {
     const dx = targetX - this.x, dy = targetY - this.y;
     const d = Math.hypot(dx, dy) || 1;
-    this.x += dx / d * 400 * dt;
-    this.y += dy / d * 400 * dt;
+    this.x += dx / d * speed * dt;
+    this.y += dy / d * speed * dt;
   }
 }

@@ -2,8 +2,16 @@ export class Input {
   constructor(joystick) {
     this.joystick = joystick;
     this.keys = {};
-    window.addEventListener('keydown', e => this.keys[e.key.toLowerCase()] = true);
-    window.addEventListener('keyup', e => this.keys[e.key.toLowerCase()] = false);
+    this.ultiPressed = false;
+
+    window.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      this.keys[k] = true;
+      if (k === 'r' && !e.repeat) this.ultiPressed = true;
+    });
+    window.addEventListener('keyup', e => {
+      this.keys[e.key.toLowerCase()] = false;
+    });
   }
 
   getDirection() {
@@ -21,4 +29,13 @@ export class Input {
     if (d > 0) { x /= d; y /= d; }
     return { x, y };
   }
+
+  // Consume the ulti-press flag (returns true once per press, then resets).
+  consumeUlti() {
+    if (this.ultiPressed) { this.ultiPressed = false; return true; }
+    return false;
+  }
+
+  // Triggered by UI (UltiButton)
+  triggerUlti() { this.ultiPressed = true; }
 }

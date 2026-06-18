@@ -28,6 +28,9 @@ export class Bullet {
       const t = 1 - this.life / this.maxLife;
       this.r = this.maxR * Math.sin(t * Math.PI);
     }
+    // Ulti bullets (laser_column, whirlwind, inferno_pool, arrow_rain_marker,
+    // rain_arrow) keep their constructor radius / position logic and are
+    // ticked by CombatSystem._tickUlti.
   }
 
   get expired() { return this.life <= 0; }
